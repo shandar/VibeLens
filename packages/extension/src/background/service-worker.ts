@@ -84,17 +84,32 @@ function handleBridgeMessage(message: { type: string; payload?: unknown }): void
     // Side panel may not be open — ignore
   })
 
-  // For file:changed, also notify content scripts to trigger reload
+  // For file:changed, notify content scripts to trigger reload
   if (message.type === 'file:changed') {
-    chrome.tabs.query({ url: ['http://localhost/*', 'http://127.0.0.1/*'] }, (tabs) => {
+    console.log('[VibeLens] File changed:', (message.payload as { filePath?: string })?.filePath)
+    chrome.tabs.query({ url: ['http://localhost/*', 'http://127.0.0.1/*'] }, async (tabs) => {
       for (const tab of tabs) {
-        if (tab.id) {
-          chrome.tabs.sendMessage(tab.id, {
+        if (!tab.id) continue
+        try {
+          await chrome.tabs.sendMessage(tab.id, {
             source: 'vibelens-bridge',
             ...message,
-          }).catch(() => {
-            // Content script may not be injected — ignore
           })
+        } catch {
+          // Content script not present — inject it, then send reload
+          try {
+            await chrome.scripting.executeScript({
+              target: { tabId: tab.id },
+              files: ['assets/content-script.ts-CBpwzmNg.js'],
+            })
+            await new Promise((r) => setTimeout(r, 100))
+            await chrome.tabs.sendMessage(tab.id, {
+              source: 'vibelens-bridge',
+              ...message,
+            })
+          } catch {
+            // Tab may not match host_permissions — skip
+          }
         }
       }
     })
@@ -117,17 +132,43 @@ chrome.action.onClicked.addListener((tab) => {
   }
 })
 
-// Handle keyboard commands
+// Handle keyboard commands — inject content script on-demand if not present
 chrome.commands.onCommand.addListener((command) => {
-  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+  console.log('[VibeLens] Command received:', command)
+
+  chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
     const tab = tabs[0]
-    if (tab?.id) {
-      chrome.tabs.sendMessage(tab.id, {
+    if (!tab?.id) {
+      console.warn('[VibeLens] No active tab found for command:', command)
+      return
+    }
+
+    const tabId = tab.id
+
+    try {
+      await chrome.tabs.sendMessage(tabId, {
         source: 'vibelens-command',
         command,
-      }).catch(() => {
-        // Content script not available
       })
+      console.log('[VibeLens] Command forwarded to tab', tabId)
+    } catch {
+      // Content script not injected — inject it on-demand, then retry
+      console.log('[VibeLens] Content script not found, injecting into tab', tabId)
+      try {
+        await chrome.scripting.executeScript({
+          target: { tabId },
+          files: ['assets/content-script.ts-CBpwzmNg.js'],
+        })
+        // Wait a tick for the script to initialize
+        await new Promise((r) => setTimeout(r, 100))
+        await chrome.tabs.sendMessage(tabId, {
+          source: 'vibelens-command',
+          command,
+        })
+        console.log('[VibeLens] Command forwarded after injection')
+      } catch (injectErr) {
+        console.error('[VibeLens] Failed to inject/send:', injectErr)
+      }
     }
   })
 })

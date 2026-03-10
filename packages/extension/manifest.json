@@ -7,6 +7,7 @@
     "sidePanel",
     "storage",
     "activeTab",
+    "scripting",
     "declarativeNetRequest"
   ],
   "host_permissions": [
@@ -45,8 +46,8 @@
   "commands": {
     "toggle-annotations": {
       "suggested_key": {
-        "default": "Ctrl+Shift+A",
-        "mac": "Command+Shift+A"
+        "default": "Ctrl+Shift+L",
+        "mac": "Command+Shift+L"
       },
       "description": "Toggle annotation mode"
     },
