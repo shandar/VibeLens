@@ -221,13 +221,20 @@ These need answers before finalizing the spec:
 
 ---
 
-## 8. Open Questions for Stakeholder Review
+## 8. Resolved Decisions
 
-- [ ] Should v1 target only Chrome, or Chrome + Firefox simultaneously?
-- [ ] Is the CLI bridge (`npx vibelens`) the right distribution model, or should it be a VS Code extension that includes the bridge?
-- [ ] Should annotation export include AI-tool-specific formatting (e.g., Claude XML tags)?
-- [ ] What's the desired licensing model?
-- [ ] Should the extension have a freemium model or be fully open-source?
+- [x] **Chrome first** — v1 targets Chrome only. Firefox in Phase 4.
+- [x] **Dual distribution** — Both `npx vibelens` CLI AND VS Code/Cursor extension. Same bridge core. (ADR-009)
+- [x] **Generic export** — Clipboard-based export in Phase 1. AI-tool-specific integrations in Phase 5.
+- [x] **MIT license** — Fully open-source. Monetize later via cloud services (team sync, CI integration). (ADR-007)
+- [x] **Dual persona** — Support both vibe coders and experienced devs via progressive disclosure UI. (ADR-010)
+- [x] **Visual diff in Phase 1** — Included in MVP, not deferred.
+
+## 9. Open Questions (Remaining)
+
+- [ ] Annotation persistence — extension storage vs. local `.vibelens/` file in project?
+- [ ] Multi-page SPA support — annotations per-route or per-project?
+- [ ] Collaboration — real-time sync vs. export/import? (deferred to cloud monetization phase)
 
 ---
 

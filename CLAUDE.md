@@ -8,9 +8,12 @@ VibeLens is a browser extension + local CLI bridge for visual preview, annotatio
 
 - **Monorepo:** pnpm workspaces under `packages/`
 - **Extension:** Chrome MV3, Preact + TypeScript, Vite + CRXJS
-- **Bridge:** Node.js 18+, TypeScript, WebSocket (`ws`) + HTTP (`fastify`)
+- **Bridge Core:** Node.js 18+, TypeScript, WebSocket (`ws`) + HTTP (`fastify`)
+- **CLI:** Thin wrapper around bridge core — `npx vibelens`
+- **VS Code Extension:** Thin wrapper around bridge core — auto-starts on workspace open
 - **Shared:** Protocol types and constants shared between extension and bridge
 - **Communication:** WebSocket on `ws://localhost:9119`, HTTP on `http://localhost:9119`
+- **License:** MIT — monetization via cloud services later (see ADR-007)
 
 ## Key Documentation
 

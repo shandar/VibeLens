@@ -18,7 +18,8 @@ Annotations      Source Sync       Snapshot Timeline   Svelte Adapter    Webhook
 Export JSON/MD   Undo/Redo         Before/After Diff   Tailwind Reverse  Tool-Specific
 Visual Diff      Diff Preview      One-Click Revert    Firefox Port      Integrations
 Bridge CLI       AST Writers       Visual History      Git Auto-Branch
-File Watcher                                           Build Plugins
+VS Code Ext                                            Build Plugins
+File Watcher
 
 v0.1.0           v0.2.0            v0.3.0              v0.4.0            v0.5.0
 ```
@@ -37,7 +38,9 @@ v0.1.0           v0.2.0            v0.3.0              v0.4.0            v0.5.0
 
 - [ ] Initialize monorepo with pnpm workspaces
 - [ ] Set up `packages/extension` with Vite + CRXJS + Preact + TypeScript
-- [ ] Set up `packages/bridge` with Node.js + TypeScript
+- [ ] Set up `packages/bridge` with Node.js + TypeScript (core library)
+- [ ] Set up `packages/cli` with CLI wrapper around bridge core
+- [ ] Set up `packages/vscode` with VS Code extension wrapper around bridge core
 - [ ] Set up `packages/shared` with protocol types
 - [ ] Configure ESLint, Prettier, Vitest across all packages
 - [ ] CI: GitHub Actions for lint + type-check + test
@@ -45,17 +48,21 @@ v0.1.0           v0.2.0            v0.3.0              v0.4.0            v0.5.0
 
 **Exit Criteria:** `pnpm build` succeeds. Extension loads in Chrome. Bridge starts and listens.
 
-#### M1.2: Bridge Server Core (Week 1-2)
+#### M1.2: Bridge Core + Dual Distribution (Week 1-2)
 
-- [ ] CLI entry point with argument parsing (citty)
+- [ ] Bridge core library: WebSocket server, file watcher, HTTP endpoints
 - [ ] WebSocket server on configurable port (default 9119)
 - [ ] File watcher with chokidar (configurable ignore patterns)
 - [ ] Dev server auto-detection (probe common ports)
 - [ ] Framework auto-detection (check project files)
 - [ ] `bridge:status` and `file:changed` WebSocket messages
 - [ ] HTTP health endpoint (`GET /api/status`)
+- [ ] CLI wrapper: argument parsing (citty), terminal output, signal handling
+- [ ] VS Code extension wrapper: activation lifecycle, status bar, command palette
+- [ ] VS Code extension: auto-start bridge on workspace open
+- [ ] VS Code extension: settings UI (port, framework override, ignore patterns)
 
-**Exit Criteria:** `npx vibelens` starts, detects a running Vite dev server, and sends `file:changed` events on save.
+**Exit Criteria:** Both `npx vibelens` and VS Code extension start the bridge, detect a running Vite dev server, and send `file:changed` events on save.
 
 #### M1.3: Extension Preview Panel (Week 2-3)
 

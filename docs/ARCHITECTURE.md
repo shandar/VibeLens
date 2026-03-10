@@ -374,10 +374,21 @@ Distribution:
     ├── Firefox Add-ons (Phase 4)
     └── Manual .crx sideload (dev/testing)
 
-  Bridge CLI:
+  Bridge — Dual Distribution (same core, two wrappers):
+
+    CLI (terminal-first users — Claude Code, Vim, any editor):
     ├── npm registry: `npm install -g vibelens`
     ├── npx: `npx vibelens` (zero-install)
     └── Homebrew (future): `brew install vibelens`
+
+    VS Code Extension (IDE-first users — VS Code, Cursor):
+    ├── VS Code Marketplace: "VibeLens"
+    ├── Open VSX Registry (for Cursor, Codium)
+    └── Provides:
+        - Auto-start bridge on workspace open
+        - Status bar: "VibeLens ● Connected"
+        - Command palette: "VibeLens: Start / Stop / Export Annotations"
+        - Settings UI for port, framework, ignore patterns
 
   Framework Plugins (optional):
     ├── npm: `vite-plugin-vibelens`
@@ -385,6 +396,26 @@ Distribution:
 ```
 
 No cloud infrastructure required. Everything runs locally.
+
+### 8.1 Bridge Core Sharing
+
+Both CLI and VS Code extension import the same `packages/bridge` core:
+
+```
+packages/bridge/          ← Core: file watcher, source mapper, code writer, WS server
+  │
+  ├── packages/cli/       ← Thin wrapper: CLI args → bridge.start(config)
+  │
+  └── packages/vscode/    ← Thin wrapper: VS Code lifecycle → bridge.start(config)
+                            - activationEvents: onStartupFinished
+                            - deactivate: bridge.stop()
+                            - workspace.onDidChangeConfiguration → bridge.restart()
+```
+
+Feature parity between CLI and VS Code extension is guaranteed because both
+are thin wrappers around the same core. The wrappers handle only:
+- **CLI:** argument parsing, terminal output, signal handling
+- **VS Code:** activation lifecycle, status bar, command palette, settings UI
 
 ---
 

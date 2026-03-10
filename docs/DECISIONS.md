@@ -197,13 +197,13 @@ When writing CSS changes back to source files, we need to modify code without br
 
 ## ADR-007: Licensing Strategy
 
-**Status:** Proposed — Awaiting Decision
+**Status:** Accepted
 **Date:** 2026-03-10
 
 ### Context
 VibeLens needs a licensing model. Key considerations: adoption speed, community contributions, potential monetization.
 
-### Options Under Consideration
+### Options Considered
 
 | Option | License | Pros | Cons |
 |--------|---------|------|------|
@@ -213,10 +213,26 @@ VibeLens needs a licensing model. Key considerations: adoption speed, community 
 | D | Open core (MIT core + proprietary features) | Best of both | Requires maintaining two codebases |
 
 ### Decision
-**TBD — Needs stakeholder input.**
+**Option A: MIT license — maximize adoption first, monetize later.**
 
-### Leaning
-Option D (open core): MIT-licensed extension + bridge core. Premium features (team collaboration, CI integration, advanced AI tool integrations) behind a commercial license.
+### Rationale
+- Priority is adoption and community momentum. MIT removes all friction.
+- Monetization comes later via hosted services, not license restrictions:
+  - **VibeLens Cloud** — team annotation sync, shared visual history, hosted screenshot diff
+  - **VibeLens Pro CLI** — CI visual regression integration, batch annotation API
+  - **Enterprise Support** — priority support, custom adapters, SLA
+- MIT allows the codebase to be the distribution channel. Revenue comes from services on top.
+
+### Monetization Timeline
+- **Months 1-6:** Pure MIT open source. Build community, gather feedback, grow DAU.
+- **Months 6-12:** Introduce VibeLens Cloud (annotation sync, team features) as paid SaaS.
+- **Year 2+:** Enterprise tier with CI integration, SSO, audit trails.
+
+### Consequences
+- **Positive:** Zero adoption friction. Corporate-friendly. Community contributions welcome.
+- **Positive:** Cloud monetization decouples revenue from codebase licensing.
+- **Negative:** Competitors can fork without restriction. Mitigated by velocity + brand.
+- **Negative:** Must build and maintain cloud service later — additional infrastructure cost.
 
 ---
 
@@ -248,6 +264,90 @@ packages/
 
 ---
 
+## ADR-009: Dual Distribution — CLI + VS Code Extension
+
+**Status:** Accepted
+**Date:** 2026-03-10
+
+### Context
+The bridge server needs to run locally to watch files and resolve source maps. Users may prefer different workflows — some use terminal-first tools (Claude Code, Vim), others use VS Code/Cursor. We need to support both without fragmenting the codebase.
+
+### Options Considered
+1. **CLI only** (`npx vibelens`) — terminal-first, editor-agnostic
+2. **VS Code extension only** — deep IDE integration, auto-start
+3. **Both CLI + VS Code extension** — maximum reach, same bridge core
+
+### Decision
+**Option 3: Both CLI and VS Code extension, sharing the same bridge core.**
+
+### Rationale
+- CLI serves terminal-first users (Claude Code, Vim, Neovim, any editor)
+- VS Code extension serves the largest IDE userbase + Cursor users (Cursor is VS Code-based)
+- Both distribution methods wrap the same `packages/bridge` core — no code duplication
+- VS Code extension auto-starts the bridge when a project opens — zero-friction onboarding
+
+### Architecture
+
+```
+packages/bridge/         ← shared core (file watcher, source mapper, code writer)
+  │
+  ├── packages/cli/      ← CLI wrapper: npx vibelens
+  │     └── bin/vibelens.ts (imports bridge core, adds CLI args)
+  │
+  └── packages/vscode/   ← VS Code extension wrapper
+        └── extension.ts (imports bridge core, adds VS Code lifecycle)
+        └── provides:
+            - Auto-start bridge on workspace open
+            - Status bar indicator (connected/disconnected)
+            - Command palette: "VibeLens: Start", "VibeLens: Stop"
+            - Settings: port, watched dirs, framework override
+```
+
+### Consequences
+- **Positive:** Covers both terminal-first and IDE-first users.
+- **Positive:** VS Code extension = zero-config onboarding for Cursor/VS Code users.
+- **Positive:** Same bridge core = no feature divergence.
+- **Negative:** Must maintain two distribution wrappers (CLI + VS Code). Low cost since wrappers are thin.
+- **Negative:** VS Code extension adds a package to the monorepo. Manageable.
+
+---
+
+## ADR-010: Dual Persona Support — Vibe Coders + Experienced Devs
+
+**Status:** Accepted
+**Date:** 2026-03-10
+
+### Context
+VibeLens targets two distinct user types with different skill levels and expectations. We need to support both without making the tool too complex for beginners or too limited for experts.
+
+### Decision
+**Support both personas with a progressive disclosure UI.**
+
+### Design Strategy
+
+| Layer | Vibe Coder (Non-Expert) | AI-Assisted Dev (Experienced) |
+|-------|------------------------|------------------------------|
+| **Onboarding** | Guided setup wizard, auto-detect everything | CLI flags, manual config |
+| **Annotations** | Simple pin + comment | Pin + comment + computed styles + source location |
+| **Inspector** | Preset controls (sliders, pickers) | Raw CSS property editing, custom values |
+| **Export** | "Copy feedback" button (markdown) | JSON export, AI prompt format, webhook |
+| **Diff** | Green/yellow/red highlights (visual only) | Detailed diff panel with property-level changes |
+| **Settings** | Minimal (on/off toggles) | Full config (ports, adapters, ignore patterns) |
+
+### Implementation
+- **Default mode:** "Simple" — shows essential controls, hides advanced options
+- **Advanced mode:** Toggle via settings or keyboard shortcut (Cmd+Shift+X)
+- **Progressive disclosure:** Advanced features are always accessible but not in the way
+- **No separate builds** — one extension, one bridge, UI adapts to preference
+
+### Consequences
+- **Positive:** Broadest possible audience. Beginners aren't overwhelmed. Experts aren't limited.
+- **Positive:** Simple mode is the marketing surface. Advanced mode is the retention hook.
+- **Negative:** Must design every feature twice (simple + advanced view). Increases UI work.
+- **Mitigation:** Start with advanced mode in Phase 1 (dev audience), add simple mode wrapper in Phase 2.
+
+---
+
 ## Decision Log (Quick Reference)
 
 | ADR | Decision | Status |
@@ -258,5 +358,7 @@ packages/
 | 004 | WebSocket for bridge communication | Accepted |
 | 005 | CSS selector paths for annotation anchoring | Accepted |
 | 006 | AST-aware code writing for source sync | Accepted |
-| 007 | Licensing strategy | Proposed |
+| 007 | MIT license, monetize via cloud services later | Accepted |
 | 008 | pnpm workspaces monorepo | Accepted |
+| 009 | Dual distribution: CLI + VS Code extension | Accepted |
+| 010 | Dual persona: progressive disclosure UI | Accepted |

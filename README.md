@@ -84,7 +84,9 @@ VibeLens/
 │   └── DECISIONS.md           # Architecture Decision Records
 ├── packages/                  # (future) Monorepo packages
 │   ├── extension/             # Browser extension (Chrome MV3)
-│   ├── bridge/                # Local bridge server (Node CLI)
+│   ├── bridge/                # Bridge core (file watcher, source mapper, code writer)
+│   ├── cli/                   # CLI wrapper (npx vibelens)
+│   ├── vscode/                # VS Code/Cursor extension wrapper
 │   ├── shared/                # Shared types and protocols
 │   └── adapters/              # Framework-specific adapters
 └── assets/                    # Brand, icons, screenshots
@@ -92,4 +94,4 @@ VibeLens/
 
 ## License
 
-TBD — See [ADR-007](docs/DECISIONS.md#adr-007-licensing-strategy) for licensing discussion.
+MIT — See [LICENSE](LICENSE). Monetization strategy via cloud services documented in [ADR-007](docs/DECISIONS.md#adr-007-licensing-strategy).
