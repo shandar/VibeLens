@@ -95,3 +95,8 @@ VibeLens/
 ## License
 
 MIT — See [LICENSE](LICENSE). Monetization strategy via cloud services documented in [ADR-007](docs/DECISIONS.md#adr-007-licensing-strategy).
+
+## Copyright
+
+Copyright (c) 2026 **Shandar Junaid / [Affordance Design Studios](https://affordance.design)**
+Contact: hello@affordancedesign.in

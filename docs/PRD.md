@@ -3,7 +3,7 @@
 **Version:** 0.1.0-draft
 **Last Updated:** 2026-03-10
 **Status:** Draft — Awaiting Review
-**Author:** Project Team
+**Author:** Shandar Junaid / Affordance Design Studios
 
 ---
 
