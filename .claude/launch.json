@@ -1,0 +1,23 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "extension-dev",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "@vibelens/extension", "run", "dev"],
+      "port": 5173
+    },
+    {
+      "name": "bridge-dev",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "@vibelens/shared", "run", "build", "&&", "pnpm", "--filter", "@vibelens/bridge", "run", "dev"],
+      "port": 9119
+    },
+    {
+      "name": "shared-watch",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "@vibelens/shared", "run", "dev"],
+      "port": 0
+    }
+  ]
+}

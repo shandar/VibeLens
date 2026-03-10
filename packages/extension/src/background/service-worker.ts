@@ -19,21 +19,31 @@ function getWsUrl(): string {
 }
 
 function connect(): void {
-  if (ws?.readyState === WebSocket.OPEN) return
+  // Guard: don't create duplicate connections
+  if (ws) {
+    if (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING) {
+      return
+    }
+    // Previous socket is CLOSING or CLOSED — clean up before reconnecting
+    ws.onopen = null
+    ws.onclose = null
+    ws.onerror = null
+    ws.onmessage = null
+    ws = null
+  }
 
   connectionStatus = 'connecting'
   broadcastStatus()
 
   try {
-    ws = new WebSocket(getWsUrl())
+    const socket = new WebSocket(getWsUrl())
 
-    ws.onopen = () => {
+    socket.onopen = () => {
       connectionStatus = 'connected'
       broadcastStatus()
-      // Connection established — no logging needed in production
     }
 
-    ws.onmessage = (event) => {
+    socket.onmessage = (event) => {
       try {
         const message = JSON.parse(event.data as string)
         handleBridgeMessage(message)
@@ -42,16 +52,17 @@ function connect(): void {
       }
     }
 
-    ws.onclose = () => {
+    socket.onclose = () => {
       connectionStatus = 'disconnected'
       broadcastStatus()
       scheduleReconnect()
     }
 
-    ws.onerror = () => {
-      connectionStatus = 'disconnected'
-      broadcastStatus()
+    socket.onerror = () => {
+      // onclose will fire after onerror — let onclose handle status + reconnect
     }
+
+    ws = socket
   } catch {
     connectionStatus = 'disconnected'
     broadcastStatus()
@@ -121,18 +132,22 @@ chrome.commands.onCommand.addListener((command) => {
   })
 })
 
-// Listen for messages from side panel
-chrome.runtime.onMessage.addListener((message) => {
+// Listen for messages from side panel — use sendResponse for reliable request-response
+chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (message.target === 'bridge' && ws?.readyState === WebSocket.OPEN) {
     ws.send(JSON.stringify(message.data))
   }
 
   if (message.type === 'get-status') {
-    broadcastStatus()
+    // Respond directly so the side panel gets the status reliably
+    sendResponse({ source: 'vibelens-status', status: connectionStatus })
   }
+
+  // Return false — we respond synchronously
+  return false
 })
 
-// Start connection on install/startup
+// Start connection once — the lifecycle listeners below handle re-execution
 chrome.runtime.onInstalled.addListener(() => {
   connect()
 })
@@ -141,5 +156,5 @@ chrome.runtime.onStartup.addListener(() => {
   connect()
 })
 
-// Initial connection attempt
+// Initial connection on script evaluation (covers wake-up from suspension)
 connect()

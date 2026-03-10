@@ -18,9 +18,11 @@ export function App(): JSX.Element {
 
     chrome.runtime.onMessage.addListener(handler)
 
-    // Request current status
-    chrome.runtime.sendMessage({ type: 'get-status' }).catch(() => {
-      // Service worker may not be ready
+    // Request current status via sendResponse (reliable request-response)
+    chrome.runtime.sendMessage({ type: 'get-status' }, (response) => {
+      if (response?.source === 'vibelens-status' && response.status) {
+        setStatus(response.status)
+      }
     })
 
     return () => {
