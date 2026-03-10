@@ -1,0 +1,37 @@
+{
+  "name": "@vibelens/bridge",
+  "version": "0.1.0",
+  "private": true,
+  "description": "VibeLens bridge server — WebSocket + HTTP + file watching",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@vibelens/shared": "workspace:*",
+    "chokidar": "^4.0.3",
+    "fastify": "^5.3.2",
+    "ws": "^8.18.1"
+  },
+  "devDependencies": {
+    "@types/node": "^25.4.0",
+    "@types/ws": "^8.18.1",
+    "typescript": "^5.8.3",
+    "vitest": "^3.1.1"
+  }
+}

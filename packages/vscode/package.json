@@ -1,0 +1,85 @@
+{
+  "name": "vibelens-vscode",
+  "displayName": "VibeLens",
+  "version": "0.1.0",
+  "private": true,
+  "description": "VibeLens bridge — auto-starts the preview bridge server for your workspace",
+  "publisher": "affordance-design-studios",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "workspaceContains:**/package.json",
+    "workspaceContains:**/index.html"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "vibelens.start",
+        "title": "VibeLens: Start Bridge"
+      },
+      {
+        "command": "vibelens.stop",
+        "title": "VibeLens: Stop Bridge"
+      },
+      {
+        "command": "vibelens.restart",
+        "title": "VibeLens: Restart Bridge"
+      }
+    ],
+    "configuration": {
+      "title": "VibeLens",
+      "properties": {
+        "vibelens.port": {
+          "type": "number",
+          "default": 9119,
+          "description": "Port for the VibeLens bridge server"
+        },
+        "vibelens.autoStart": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically start the bridge when a workspace is opened"
+        },
+        "vibelens.framework": {
+          "type": "string",
+          "enum": [
+            "auto",
+            "react",
+            "vue",
+            "svelte",
+            "nextjs",
+            "vite",
+            "static"
+          ],
+          "default": "auto",
+          "description": "Override framework auto-detection"
+        },
+        "vibelens.ignorePatterns": {
+          "type": "array",
+          "default": [],
+          "description": "Additional file patterns to ignore when watching"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@vibelens/bridge": "workspace:*",
+    "@vibelens/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^25.4.0",
+    "@types/vscode": "^1.85.0",
+    "typescript": "^5.8.3"
+  }
+}

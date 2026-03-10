@@ -1,0 +1,50 @@
+{
+  "name": "vibelens",
+  "version": "0.1.0",
+  "description": "VibeLens CLI — visual preview, annotation, and CSS manipulation for AI-generated code",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "vibelens": "./bin/vibelens.js"
+  },
+  "files": [
+    "dist",
+    "bin"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@vibelens/bridge": "workspace:*",
+    "@vibelens/shared": "workspace:*",
+    "citty": "^0.1.6",
+    "consola": "^3.4.2"
+  },
+  "devDependencies": {
+    "@types/node": "^25.4.0",
+    "typescript": "^5.8.3",
+    "vitest": "^3.1.1"
+  },
+  "keywords": [
+    "vibelens",
+    "vibe-coding",
+    "browser-extension",
+    "visual-preview",
+    "annotation",
+    "css-manipulation",
+    "ai-coding"
+  ],
+  "author": "Shandar Junaid / Affordance Design Studios <hello@affordancedesign.in>",
+  "license": "MIT",
+  "homepage": "https://github.com/shandar/VibeLens",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/shandar/VibeLens.git",
+    "directory": "packages/cli"
+  }
+}

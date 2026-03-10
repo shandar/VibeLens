@@ -1,0 +1,61 @@
+{
+  "manifest_version": 3,
+  "name": "VibeLens",
+  "version": "0.1.0",
+  "description": "Visual co-pilot for vibe coding — preview, annotate, and tweak AI-generated UI",
+  "permissions": [
+    "sidePanel",
+    "storage",
+    "activeTab",
+    "declarativeNetRequest"
+  ],
+  "host_permissions": [
+    "http://localhost/*",
+    "http://127.0.0.1/*"
+  ],
+  "background": {
+    "service_worker": "src/background/service-worker.ts",
+    "type": "module"
+  },
+  "side_panel": {
+    "default_path": "src/sidepanel/index.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["http://localhost/*", "http://127.0.0.1/*"],
+      "js": ["src/content/content-script.ts"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_title": "VibeLens",
+    "default_icon": {
+      "16": "public/icon-16.svg",
+      "32": "public/icon-32.svg",
+      "48": "public/icon-48.svg",
+      "128": "public/icon-128.svg"
+    }
+  },
+  "icons": {
+    "16": "public/icon-16.svg",
+    "32": "public/icon-32.svg",
+    "48": "public/icon-48.svg",
+    "128": "public/icon-128.svg"
+  },
+  "commands": {
+    "toggle-annotations": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+A",
+        "mac": "Command+Shift+A"
+      },
+      "description": "Toggle annotation mode"
+    },
+    "toggle-diff": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+D",
+        "mac": "Command+Shift+D"
+      },
+      "description": "Toggle visual diff overlay"
+    }
+  }
+}

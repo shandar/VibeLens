@@ -1,0 +1,5 @@
+export { Bridge, type BridgeOptions } from './bridge.js'
+export { VibeLensWSServer } from './server/ws-server.js'
+export { VibeLensHttpServer } from './server/http-server.js'
+export { FileWatcher } from './watcher/file-watcher.js'
+export { detectDevServer, detectFramework } from './server/detect.js'

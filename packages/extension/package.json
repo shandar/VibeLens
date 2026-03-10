@@ -1,0 +1,27 @@
+{
+  "name": "@vibelens/extension",
+  "version": "0.1.0",
+  "private": true,
+  "description": "VibeLens Chrome extension — visual preview, annotation, and CSS manipulation",
+  "type": "module",
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite build --watch",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@vibelens/shared": "workspace:*",
+    "preact": "^10.25.4",
+    "zustand": "^5.0.5"
+  },
+  "devDependencies": {
+    "@preact/preset-vite": "^2.9.4",
+    "@crxjs/vite-plugin": "^2.0.0-beta.28",
+    "@types/chrome": "^0.0.306",
+    "typescript": "^5.8.3",
+    "vite": "^6.3.2",
+    "vitest": "^3.1.1"
+  }
+}
