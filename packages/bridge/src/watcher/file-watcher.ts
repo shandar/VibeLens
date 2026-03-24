@@ -1,5 +1,6 @@
 import path from 'node:path'
 import { watch, type FSWatcher } from 'chokidar'
+import { logger } from '@vibelens/shared'
 
 export interface FileWatcherOptions {
   /** Root directory to watch */
@@ -99,7 +100,7 @@ export class FileWatcher {
 
     this.watcher.on('error', (err: unknown) => {
       const message = err instanceof Error ? err.message : String(err)
-      console.error('[VibeLens Watcher] Error:', message)
+      logger.error('Watcher error:', message)
     })
   }
 
