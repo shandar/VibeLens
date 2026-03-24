@@ -54,8 +54,9 @@ _metadata/
 # Local VibeLens config/feedback
 .vibelens/
 
-# Internal audit/tracking
-.claude/audit-tracker.md
+# Claude Code config (local only)
+.claude/
+CLAUDE.md
 
 # Internal docs (not for public repo)
 docs/PRD.md
