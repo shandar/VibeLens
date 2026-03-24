@@ -94,7 +94,7 @@ VibeLens/
 
 ## License
 
-MIT — See [LICENSE](LICENSE). Monetization strategy via cloud services documented in [ADR-007](docs/DECISIONS.md#adr-007-licensing-strategy).
+MIT — See [LICENSE](LICENSE).
 
 ## Copyright
 

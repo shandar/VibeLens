@@ -44,3 +44,31 @@ pnpm-debug.log*
 snapshots/*.png
 snapshots/*.jpg
 !snapshots/.gitkeep
+
+# Chrome extension metadata (auto-generated)
+_metadata/
+
+# Backup files
+*.bak
+
+# Local VibeLens config/feedback
+.vibelens/
+
+# Internal audit/tracking
+.claude/audit-tracker.md
+
+# Internal docs (not for public repo)
+docs/PRD.md
+docs/ARCHITECTURE.md
+docs/TECHNICAL_SPEC.md
+docs/USER_FLOWS.md
+docs/ROADMAP.md
+docs/DECISIONS.md
+docs/marketing/VIBELENS-BROCHURE.md
+docs/marketing/images/
+
+# Store prep (internal)
+store/
+
+# Plans
+.claude/plans/

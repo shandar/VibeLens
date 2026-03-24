@@ -13,7 +13,7 @@ VibeLens is a browser extension + local CLI bridge for visual preview, annotatio
 - **VS Code Extension:** Thin wrapper around bridge core — auto-starts on workspace open
 - **Shared:** Protocol types and constants shared between extension and bridge
 - **Communication:** WebSocket on `ws://localhost:9119`, HTTP on `http://localhost:9119`
-- **License:** MIT — monetization via cloud services later (see ADR-007)
+- **License:** MIT
 
 ## Key Documentation
 

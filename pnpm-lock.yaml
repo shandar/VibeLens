@@ -32,6 +32,15 @@ importers:
 
   packages/bridge:
     dependencies:
+      '@babel/parser':
+        specifier: ^7.29.0
+        version: 7.29.0
+      '@babel/traverse':
+        specifier: ^7.29.0
+        version: 7.29.0
+      '@babel/types':
+        specifier: ^7.29.0
+        version: 7.29.0
       '@vibelens/shared':
         specifier: workspace:*
         version: link:../shared
@@ -41,10 +50,19 @@ importers:
       fastify:
         specifier: ^5.3.2
         version: 5.8.2
+      postcss:
+        specifier: ^8.5.8
+        version: 8.5.8
+      source-map-js:
+        specifier: ^1.2.1
+        version: 1.2.1
       ws:
         specifier: ^8.18.1
         version: 8.19.0
     devDependencies:
+      '@types/babel__traverse':
+        specifier: ^7.28.0
+        version: 7.28.0
       '@types/node':
         specifier: ^25.4.0
         version: 25.4.0
@@ -115,6 +133,10 @@ importers:
         version: 3.2.4(@types/node@25.4.0)
 
   packages/shared:
+    dependencies:
+      zod:
+        specifier: ^4.3.6
+        version: 4.3.6
     devDependencies:
       typescript:
         specifier: ^5.8.3
@@ -672,6 +694,9 @@ packages:
     resolution: {integrity: sha512-2HRCml6OztYXyJXAvdDXPKcawukWY2GpR5/nxKp4iBgiO3wcoEGkAaqctIbZcNB6KlUQBIqt8VYkNSj2397EfA==}
     cpu: [x64]
     os: [win32]
+
+  '@types/babel__traverse@7.28.0':
+    resolution: {integrity: sha512-8PvcXf70gTDZBgt9ptxJ8elBeBjcLOAcOtoO/mPJjtji1+CdGbHgm77om1GrsPxsiE+uXIpNSK64UYaIwQXd4Q==}
 
   '@types/chai@5.2.3':
     resolution: {integrity: sha512-Mw558oeA9fFbv65/y4mHtXDs9bPnFMZAL/jxdPFUpOHHIXX91mcgEHbS5Lahr+pwZFR8A7GQleRWeI6cGFC2UA==}
@@ -1734,6 +1759,9 @@ packages:
     resolution: {integrity: sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==}
     engines: {node: '>=10'}
 
+  zod@4.3.6:
+    resolution: {integrity: sha512-rftlrkhHZOcjDwkGlnUtZZkvaPHCsDATp4pGpuOOMDaTdDDXF91wuVDJoWoPsKX/3YPQ5fHuF3STjcYyKr+Qhg==}
+
   zustand@5.0.11:
     resolution: {integrity: sha512-fdZY+dk7zn/vbWNCYmzZULHRrss0jx5pPFiOuMZ/5HJN6Yv3u+1Wswy/4MpZEkEGhtNH+pwxZB8OKgUBPzYAGg==}
     engines: {node: '>=12.20.0'}
@@ -2219,6 +2247,10 @@ snapshots:
 
   '@rollup/rollup-win32-x64-msvc@4.59.0':
     optional: true
+
+  '@types/babel__traverse@7.28.0':
+    dependencies:
+      '@babel/types': 7.29.0
 
   '@types/chai@5.2.3':
     dependencies:
@@ -3308,5 +3340,7 @@ snapshots:
   yallist@3.1.1: {}
 
   yocto-queue@0.1.0: {}
+
+  zod@4.3.6: {}
 
   zustand@5.0.11: {}
