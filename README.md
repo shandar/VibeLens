@@ -1,102 +1,155 @@
-# VibeLens
+<p align="center">
+  <img src="packages/extension/public/icon-128.png" width="64" height="64" alt="VibeLens icon">
+</p>
 
-**Visual Preview, Annotation & Direct Manipulation Layer for AI-Assisted Development**
+<h1 align="center">VibeLens</h1>
 
-VibeLens bridges the gap between AI-generated code and visual output. It's a browser extension + local bridge server that lets developers see changes live, annotate what needs fixing, and make cosmetic tweaks that write back to source — all without leaving the browser.
+<p align="center">
+  <strong>Visual CSS inspector for vibe coding</strong><br>
+  Click any element. Tweak its styles. Write back to source.<br>
+  Chrome extension — no CLI, no terminal, no setup.
+</p>
+
+<p align="center">
+  <a href="#features">Features</a> &middot;
+  <a href="#quick-start">Quick Start</a> &middot;
+  <a href="#how-it-works">How It Works</a> &middot;
+  <a href="https://affordance.design">Affordance Design Studio</a>
+</p>
 
 ---
 
 ## The Problem
 
-When using AI coding tools (Claude Code, Cursor, Copilot, Windsurf, etc.), there's a friction loop:
+AI tools generate frontend code, but you still squint at the browser and type vague feedback like *"the spacing looks off."* The AI guesses what you mean. You repeat 3-4 times. A 30-second fix takes 10 minutes.
 
-1. **Context switch** — AI generates code, but you must alt-tab to the browser to see what it looks like
-2. **Feedback is verbal** — Describing visual problems in words ("make the padding bigger", "that color is off") is imprecise
-3. **Small tweaks are expensive** — A 2px spacing fix requires going back to the AI tool or IDE
-4. **No visual history** — Hard to see what changed between iterations
+**VibeLens gives you precision instead of guesswork.**
 
-## The Solution
+## Quick Start
 
-VibeLens gives you three superpowers in the browser:
+```
+1. Install VibeLens from the Chrome Web Store
+2. Open any localhost page (your dev server)
+3. Click the VibeLens icon
+4. Click any element — start editing
+```
 
-| Capability | What it does |
-|-----------|-------------|
-| **See** | Live preview with visual diff highlighting — green for new, yellow for modified |
-| **Annotate** | Click any element, drop a pin, type a note — anchored to DOM, not pixels |
-| **Tweak** | Click an element, adjust CSS visually (colors, spacing, typography) — changes write back to source files |
+No CLI. No terminal. No Node.js. No accounts. Just a Chrome extension.
+
+**Want auto write-back to source files?** Click "Connect Project Folder" in the panel footer — one-time setup, changes write directly to your CSS/JSX/Vue files.
+
+## Features
+
+### Inspect & Edit
+
+- **Click any element** to see its full CSS breakdown — box model, typography, background, borders, effects
+- **Edit values inline** — color pickers, number inputs, dropdowns. Changes apply instantly to the DOM
+- **Double-click text** to edit content directly on the page
+
+### State Forcing
+
+- Force **:hover**, **:active**, **:focus** states on any element
+- Inspect and edit interactive styles without trying to hover and inspect simultaneously
+
+### Accessibility
+
+- **WCAG contrast ratio** shown inline for every text element
+- **AA/AAA compliance badges** — green for pass, red for fail
+- **Auto-fix suggestions** — click to apply the nearest accessible color
+
+### CSS Variables
+
+- See what `var(--primary-color)` resolves to
+- **Edit the token value** and preview the cascade across all elements using it
+- Color swatches for variable values
+
+### Layout Overlays
+
+- Click the **layout badge** (e.g., "flex row", "grid 3×2") to visualize grid lines, flex direction, and gap
+- Flex item outlines with direction arrows
+
+### Visual Diff
+
+- Toggle with **Cmd+Shift+D** to see what changed between page loads
+- Green = added, yellow = modified, red = removed
+
+### Annotations
+
+- Pin notes on any element — anchored to DOM selectors, not pixel coordinates
+- Survive reloads and resizes
+- Export as AI-ready prompts
+
+### Export & Persistence
+
+- **Changes persist across page refreshes** via browser storage
+- **Copy CSS** — clean CSS patch to clipboard
+- **Copy as AI Prompt** — structured prompt for any AI coding tool
+- **Connect Project Folder** — write changes directly to source files via File System Access API
+- **Element screenshots** — capture any element as PNG
 
 ## How It Works
 
 ```
-Browser Extension  ←— WebSocket —→  Local Bridge Server  ←— File System —→  Your Project
-     (preview,                        (file watcher,                         (React, Vue,
-      annotate,                        source mapper,                         Svelte, HTML,
-      tweak)                           code writer)                           Tailwind...)
+Chrome Extension                          Your Source Files
+┌─────────────┐     File System API      ┌──────────────┐
+│ Inspector    │ ──── (one-time setup) ──→│ .css / .scss │
+│ State Force  │                          │ .jsx / .tsx  │
+│ Contrast     │     chrome.storage      │ .vue / .svelte│
+│ CSS Vars     │ ──── (auto-persist) ──→ │ .html        │
+│ Layout       │                          └──────────────┘
+│ Diff / Pins  │     Clipboard
+│ Screenshots  │ ──── (copy CSS/prompt) ──→ AI tool / editor
+└─────────────┘
 ```
 
-The extension connects to a lightweight local bridge (`npx vibelens`) that watches your project files, maps DOM elements back to source locations, and writes visual changes back to the correct files.
+Everything runs in the browser. No external processes, no servers, no WebSocket bridges.
 
-## Quick Start (Coming Soon)
+**Optional:** A CLI bridge (`npx vibelens`) is available for advanced use cases — auto-detected if running.
 
-```bash
-# Install the bridge
-npm install -g vibelens
+## Works With
 
-# Start watching your project
-cd your-project
-vibelens
+Any AI coding tool. Any frontend framework.
 
-# Install the browser extension from Chrome Web Store
-# Open your dev server — VibeLens auto-detects it
-```
+**AI Tools:** Claude Code, Cursor, GitHub Copilot, Windsurf, Bolt, v0
 
-## Project Status
+**Frameworks:** React, Vue, Svelte, Astro, Next.js, Nuxt, plain HTML — anything that runs on localhost.
 
-**Phase: Planning & Documentation**
+## Keyboard Shortcuts
 
-See [docs/ROADMAP.md](docs/ROADMAP.md) for the phased delivery plan.
+| Shortcut | Action |
+|----------|--------|
+| Click VibeLens icon | Open/close inspector |
+| Click element | Inspect its CSS |
+| Double-click element | Edit its text |
+| Cmd+Shift+L | Toggle annotations |
+| Cmd+Shift+D | Toggle visual diff |
+| Esc | Deselect element |
 
-## Documentation
+## Privacy
 
-| Document | Purpose |
-|----------|---------|
-| [PRD](docs/PRD.md) | Product requirements — what we're building and why |
-| [Architecture](docs/ARCHITECTURE.md) | System design — how the pieces fit together |
-| [User Flows](docs/USER_FLOWS.md) | Step-by-step user journeys |
-| [Technical Spec](docs/TECHNICAL_SPEC.md) | Detailed component specifications |
-| [Roadmap](docs/ROADMAP.md) | Phased implementation plan with milestones |
-| [Decisions](docs/DECISIONS.md) | Architecture Decision Records (ADRs) |
-| [Changelog](CHANGELOG.md) | Release history |
+VibeLens makes **zero network requests**. Everything runs on localhost.
 
-## Repository Structure
+- No telemetry, no analytics, no usage tracking
+- No accounts, no sign-ups
+- Extension only activates on `localhost` and `127.0.0.1`
+- Your code never leaves your machine
+- Open source — audit every line
 
-```
-VibeLens/
-├── README.md                  # This file
-├── CLAUDE.md                  # AI assistant project instructions
-├── CHANGELOG.md               # Release history
-├── docs/
-│   ├── PRD.md                 # Product Requirements Document
-│   ├── ARCHITECTURE.md        # Technical Architecture
-│   ├── USER_FLOWS.md          # User Flows & Journeys
-│   ├── TECHNICAL_SPEC.md      # Detailed Technical Specification
-│   ├── ROADMAP.md             # Phased Roadmap
-│   └── DECISIONS.md           # Architecture Decision Records
-├── packages/                  # (future) Monorepo packages
-│   ├── extension/             # Browser extension (Chrome MV3)
-│   ├── bridge/                # Bridge core (file watcher, source mapper, code writer)
-│   ├── cli/                   # CLI wrapper (npx vibelens)
-│   ├── vscode/                # VS Code/Cursor extension wrapper
-│   ├── shared/                # Shared types and protocols
-│   └── adapters/              # Framework-specific adapters
-└── assets/                    # Brand, icons, screenshots
-```
+## Tech Stack
+
+| Component | Technology |
+|-----------|------------|
+| Extension UI | Preact + TypeScript |
+| Build | Vite + CRXJS |
+| State | Zustand |
+| CSS Parsing | PostCSS |
+| JSX Parsing | Babel |
+| Monorepo | pnpm workspaces |
 
 ## License
 
 MIT — See [LICENSE](LICENSE).
 
-## Copyright
+## Built With
 
-Copyright (c) 2026 **Shandar Junaid / [Affordance Design Studios](https://affordance.design)**
-Contact: hello@affordancedesign.in
+Built with ❤ by [Affordance Design Studio](https://affordance.design) & [Shandar Junaid](https://shandarjunaid.com)
