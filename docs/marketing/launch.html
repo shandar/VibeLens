@@ -1,0 +1,1742 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VibeLens — Visual Co-pilot for Vibe Coding</title>
+  <meta name="description" content="See changes, annotate problems, tweak CSS — all in the browser. VibeLens bridges the gap between AI-generated code and what you actually want.">
+  <meta property="og:title" content="VibeLens — See it. Pin it. Fix it.">
+  <meta property="og:description" content="A visual co-pilot for vibe coding. Live preview, annotation, and CSS manipulation — synced back to source.">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <style>
+    /* ─── Reset & Base ──────────────────────────── */
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #0a0a0f;
+      --bg-elevated: #12121a;
+      --bg-card: #16161f;
+      --bg-card-hover: #1c1c28;
+      --surface: #1e1e2a;
+      --border: rgba(255,255,255,0.06);
+      --border-bright: rgba(255,255,255,0.12);
+      --text: #e4e4ed;
+      --text-secondary: #8b8b9e;
+      --text-muted: #5c5c70;
+      --accent: #6366f1;
+      --accent-bright: #818cf8;
+      --accent-glow: rgba(99,102,241,0.15);
+      --green: #4ade80;
+      --yellow: #facc15;
+      --red: #f87171;
+      --blue: #60a5fa;
+      --font-body: 'Inter', -apple-system, system-ui, sans-serif;
+      --font-mono: 'JetBrains Mono', 'SF Mono', monospace;
+      --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+      --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    html {
+      scroll-behavior: smooth;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      scrollbar-width: thin;
+      scrollbar-color: #2a2a3a #0a0a0f;
+    }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: #2a2a3a; border-radius: 3px; }
+
+    /* ─── Utility ───────────────────────────────── */
+    .container { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+    .text-gradient {
+      background: linear-gradient(135deg, var(--accent-bright), #c084fc, #f472b6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .mono { font-family: var(--font-mono); }
+
+    /* ─── Scroll Reveal Animation ───────────────── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(40px);
+      transition: opacity 0.8s var(--ease-out-expo), transform 0.8s var(--ease-out-expo);
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .reveal-delay-1 { transition-delay: 0.1s; }
+    .reveal-delay-2 { transition-delay: 0.2s; }
+    .reveal-delay-3 { transition-delay: 0.3s; }
+    .reveal-delay-4 { transition-delay: 0.4s; }
+
+    /* ─── Parallax Layers ───────────────────────── */
+    .parallax-container {
+      position: relative;
+      overflow: hidden;
+    }
+    .parallax-bg {
+      position: absolute;
+      inset: -20% 0;
+      will-change: transform;
+      pointer-events: none;
+    }
+
+    /* ─── Glow Orbs (ambient background) ────────── */
+    .glow-orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(120px);
+      pointer-events: none;
+      will-change: transform;
+    }
+
+    /* ─── Navigation ────────────────────────────── */
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      padding: 16px 0;
+      background: rgba(10,10,15,0.7);
+      backdrop-filter: blur(20px) saturate(1.4);
+      -webkit-backdrop-filter: blur(20px) saturate(1.4);
+      border-bottom: 1px solid var(--border);
+      transition: all 0.4s var(--ease-out-expo);
+    }
+    nav.scrolled {
+      padding: 10px 0;
+      background: rgba(10,10,15,0.9);
+    }
+    nav .container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .nav-logo {
+      font-family: var(--font-mono);
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .nav-logo-icon {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, var(--accent), #8b5cf6);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .nav-logo-icon svg { width: 18px; height: 18px; }
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      list-style: none;
+    }
+    .nav-links a {
+      padding: 8px 14px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      text-decoration: none;
+      border-radius: 8px;
+      transition: all 0.2s;
+    }
+    .nav-links a:hover { color: var(--text); background: rgba(255,255,255,0.05); }
+    .nav-cta {
+      background: var(--accent) !important;
+      color: white !important;
+      font-weight: 600 !important;
+      padding: 8px 20px !important;
+    }
+    .nav-cta:hover { background: var(--accent-bright) !important; }
+
+    /* ─── Hero ──────────────────────────────────── */
+    #hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 140px 24px 80px;
+      position: relative;
+    }
+    #hero .glow-orb-1 {
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, rgba(99,102,241,0.12), transparent 70%);
+      top: -10%; left: 30%;
+    }
+    #hero .glow-orb-2 {
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(168,85,247,0.08), transparent 70%);
+      bottom: 10%; right: 10%;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 16px 6px 8px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-bright);
+      border-radius: 100px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      margin-bottom: 32px;
+    }
+    .hero-badge-dot {
+      width: 8px; height: 8px;
+      background: var(--green);
+      border-radius: 50%;
+      animation: pulse-dot 2s ease infinite;
+    }
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(74,222,128,0.4); }
+      50% { opacity: 0.8; box-shadow: 0 0 0 6px rgba(74,222,128,0); }
+    }
+
+    .hero-title {
+      font-size: clamp(44px, 7vw, 80px);
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1.05;
+      margin-bottom: 24px;
+      max-width: 800px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .hero-subtitle {
+      font-size: clamp(16px, 2vw, 20px);
+      color: var(--text-secondary);
+      max-width: 560px;
+      margin: 0 auto 40px;
+      line-height: 1.6;
+    }
+
+    .hero-ctas {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 64px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 28px;
+      font-family: var(--font-body);
+      font-size: 14px;
+      font-weight: 600;
+      text-decoration: none;
+      border-radius: 12px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.3s var(--ease-out-expo);
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: white;
+      box-shadow: 0 0 0 0 var(--accent-glow), 0 4px 12px rgba(0,0,0,0.3);
+    }
+    .btn-primary:hover {
+      background: var(--accent-bright);
+      box-shadow: 0 0 0 4px var(--accent-glow), 0 8px 24px rgba(0,0,0,0.4);
+      transform: translateY(-2px);
+    }
+    .btn-secondary {
+      background: var(--bg-card);
+      color: var(--text);
+      border: 1px solid var(--border-bright);
+    }
+    .btn-secondary:hover {
+      background: var(--bg-card-hover);
+      border-color: rgba(255,255,255,0.2);
+      transform: translateY(-2px);
+    }
+
+    /* Hero floating panel mockup */
+    .hero-panel-wrapper {
+      perspective: 1200px;
+      max-width: 380px;
+      margin: 0 auto;
+    }
+    .hero-panel {
+      background: #1e1e2e;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 14px;
+      overflow: hidden;
+      text-align: left;
+      box-shadow:
+        0 32px 64px rgba(0,0,0,0.5),
+        0 16px 32px rgba(0,0,0,0.3),
+        0 0 0 1px rgba(255,255,255,0.05),
+        0 0 120px rgba(99,102,241,0.08);
+      transform: rotateY(-2deg) rotateX(1deg);
+      transition: transform 0.6s var(--ease-out-expo), box-shadow 0.6s var(--ease-out-expo);
+      animation: panel-float 6s ease-in-out infinite;
+    }
+    .hero-panel:hover {
+      transform: rotateY(0) rotateX(0) translateY(-4px);
+      box-shadow:
+        0 40px 80px rgba(0,0,0,0.6),
+        0 20px 40px rgba(0,0,0,0.4),
+        0 0 0 1px rgba(255,255,255,0.08),
+        0 0 160px rgba(99,102,241,0.12);
+    }
+    @keyframes panel-float {
+      0%, 100% { transform: rotateY(-2deg) rotateX(1deg) translateY(0); }
+      50% { transform: rotateY(-2deg) rotateX(1deg) translateY(-8px); }
+    }
+
+    /* Panel title bar */
+    .panel-titlebar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      background: #181825;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .panel-dots {
+      display: flex;
+      gap: 6px;
+    }
+    .panel-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+    }
+    .panel-title-text {
+      flex: 1;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
+      color: #a6adc8;
+      text-align: center;
+      letter-spacing: 0.3px;
+    }
+    .panel-status {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 10px;
+      color: var(--green);
+      font-family: var(--font-mono);
+    }
+    .panel-status-dot {
+      width: 6px; height: 6px;
+      background: var(--green);
+      border-radius: 50%;
+      animation: pulse-dot 2s ease infinite;
+    }
+
+    /* Panel mode bar */
+    .panel-modes {
+      display: flex;
+      gap: 2px;
+      padding: 8px 12px;
+      background: rgba(255,255,255,0.02);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .panel-mode-btn {
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-size: 10px;
+      font-weight: 600;
+      font-family: var(--font-mono);
+      color: #6c7086;
+      background: transparent;
+      border: none;
+      letter-spacing: 0.3px;
+      cursor: default;
+      transition: all 0.2s;
+    }
+    .panel-mode-btn.active {
+      background: rgba(99,102,241,0.15);
+      color: #a5b4fc;
+    }
+
+    /* Element breadcrumb */
+    .panel-breadcrumb {
+      padding: 8px 12px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: #6c7086;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      display: flex;
+      gap: 4px;
+      align-items: center;
+    }
+    .panel-breadcrumb .bc-active {
+      color: #a5b4fc;
+      background: rgba(99,102,241,0.1);
+      padding: 1px 6px;
+      border-radius: 4px;
+    }
+
+    /* Panel sections */
+    .panel-section {
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+    .panel-section-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 12px;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
+      color: #cdd6f4;
+      cursor: default;
+    }
+    .panel-section-header svg {
+      width: 12px; height: 12px;
+      color: #6c7086;
+    }
+    .panel-section-header .chevron {
+      margin-left: auto;
+      color: #45475a;
+      transition: transform 0.2s;
+    }
+    .panel-section-header .chevron.collapsed {
+      transform: rotate(-90deg);
+    }
+
+    /* Property rows */
+    .panel-props {
+      padding: 4px 12px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .panel-prop-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .panel-prop-label {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: #6c7086;
+      min-width: 80px;
+    }
+    .panel-prop-value {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: #cdd6f4;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 4px;
+      padding: 3px 8px;
+      flex: 1;
+      text-align: right;
+      transition: all 0.3s ease;
+    }
+    .panel-prop-value.changed {
+      border-color: rgba(99,102,241,0.4);
+      background: rgba(99,102,241,0.08);
+      color: #a5b4fc;
+    }
+
+    /* Color swatch */
+    .panel-color-swatch {
+      width: 16px; height: 16px;
+      border-radius: 4px;
+      border: 1px solid rgba(255,255,255,0.12);
+      flex-shrink: 0;
+      transition: all 0.4s ease;
+    }
+
+    /* Apply button */
+    .panel-apply {
+      margin: 10px 12px 12px;
+      padding: 7px 0;
+      width: calc(100% - 24px);
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+      cursor: default;
+      box-shadow: 0 2px 8px rgba(99,102,241,0.3);
+      transition: all 0.3s ease;
+    }
+    .panel-apply:hover {
+      background: var(--accent-bright);
+    }
+
+    /* Animated value change keyframes */
+    @keyframes value-flash {
+      0% { background: rgba(99,102,241,0.2); }
+      100% { background: rgba(99,102,241,0.08); }
+    }
+    @keyframes color-morph {
+      0%, 100% { background: #6366f1; }
+      33% { background: #3b82f6; }
+      66% { background: #8b5cf6; }
+    }
+
+    /* ─── Logos / Social Proof ───────────────────── */
+    #works-with {
+      padding: 60px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .works-with-label {
+      text-align: center;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: var(--text-muted);
+      margin-bottom: 32px;
+    }
+    .logos-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 48px;
+      flex-wrap: wrap;
+      opacity: 0.4;
+    }
+    .logos-row span {
+      font-family: var(--font-mono);
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      white-space: nowrap;
+    }
+
+    /* ─── Problem Section ───────────────────────── */
+    #problem {
+      padding: 120px 0;
+      position: relative;
+    }
+    .problem-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 64px;
+      align-items: center;
+    }
+    .section-eyebrow {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      color: var(--accent-bright);
+      margin-bottom: 16px;
+    }
+    .section-heading {
+      font-size: clamp(32px, 4vw, 48px);
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+      margin-bottom: 24px;
+    }
+    .section-desc {
+      font-size: 16px;
+      color: var(--text-secondary);
+      line-height: 1.7;
+      margin-bottom: 32px;
+    }
+
+    /* Friction loop animation */
+    .friction-loop {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .friction-step {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 16px 20px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-size: 14px;
+      transition: all 0.4s var(--ease-out-expo);
+    }
+    .friction-step:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--border-bright);
+      transform: translateX(6px);
+    }
+    .friction-num {
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .friction-num-slow { background: rgba(248,113,113,0.15); color: var(--red); }
+    .friction-num-fast { background: rgba(74,222,128,0.15); color: var(--green); }
+    .friction-time {
+      margin-left: auto;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+    .friction-connector {
+      width: 2px;
+      height: 8px;
+      background: var(--border);
+      margin-left: 32px;
+    }
+
+    /* ─── Features Section ──────────────────────── */
+    #features {
+      padding: 120px 0;
+    }
+    .features-header {
+      text-align: center;
+      margin-bottom: 80px;
+    }
+
+    .feature-block {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 64px;
+      align-items: center;
+      padding: 80px 0;
+      border-top: 1px solid var(--border);
+    }
+    .feature-block:nth-child(even) .feature-visual { order: -1; }
+
+    .feature-num {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--accent-bright);
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      margin-bottom: 12px;
+    }
+    .feature-title {
+      font-size: clamp(28px, 3.5vw, 40px);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+      margin-bottom: 16px;
+    }
+    .feature-desc {
+      font-size: 15px;
+      color: var(--text-secondary);
+      line-height: 1.7;
+      margin-bottom: 24px;
+    }
+
+    .feature-bullets {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .feature-bullets li {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+    .bullet-icon {
+      width: 20px;
+      height: 20px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 2px;
+      font-size: 11px;
+    }
+    .bullet-green { background: rgba(74,222,128,0.12); color: var(--green); }
+    .bullet-blue { background: rgba(96,165,250,0.12); color: var(--blue); }
+    .bullet-purple { background: rgba(168,85,247,0.12); color: #a855f7; }
+    .bullet-yellow { background: rgba(250,204,21,0.12); color: var(--yellow); }
+
+    /* Feature visual containers */
+    .feature-visual {
+      position: relative;
+      border-radius: 16px;
+      overflow: hidden;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      aspect-ratio: 16/10;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .feature-visual img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 15px;
+    }
+    .feature-visual-glow {
+      position: absolute;
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.5;
+      pointer-events: none;
+    }
+
+    /* ─── How It Works ──────────────────────────── */
+    #how-it-works {
+      padding: 120px 0;
+      position: relative;
+    }
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      margin-top: 64px;
+    }
+    .step-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px;
+      position: relative;
+      transition: all 0.4s var(--ease-out-expo);
+    }
+    .step-card:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--border-bright);
+      transform: translateY(-4px);
+      box-shadow: 0 16px 32px rgba(0,0,0,0.3);
+    }
+    .step-num {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      background: var(--accent-glow);
+      border: 1px solid rgba(99,102,241,0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--accent-bright);
+      margin-bottom: 20px;
+    }
+    .step-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+    .step-desc {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+    .step-code {
+      margin-top: 16px;
+      padding: 12px 16px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--green);
+      overflow-x: auto;
+    }
+
+    /* ─── Comparison ────────────────────────────── */
+    #comparison {
+      padding: 120px 0;
+    }
+    .comparison-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-top: 64px;
+    }
+    .comparison-card {
+      border-radius: 16px;
+      padding: 40px;
+      position: relative;
+      overflow: hidden;
+    }
+    .comparison-card-before {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+    }
+    .comparison-card-after {
+      background: linear-gradient(135deg, rgba(99,102,241,0.08), rgba(168,85,247,0.06));
+      border: 1px solid rgba(99,102,241,0.15);
+    }
+    .comparison-label {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      margin-bottom: 24px;
+    }
+    .comparison-label-dim { color: var(--text-muted); }
+    .comparison-label-bright { color: var(--accent-bright); }
+    .comparison-steps {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .comparison-steps li {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+    .comparison-steps li .num {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .comparison-time {
+      margin-top: 24px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+      font-family: var(--font-mono);
+      font-size: 14px;
+      font-weight: 700;
+    }
+    .time-slow { color: var(--red); }
+    .time-fast { color: var(--green); }
+
+    /* ─── Architecture ──────────────────────────── */
+    #architecture {
+      padding: 120px 0;
+    }
+    .arch-diagram {
+      margin-top: 64px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 48px;
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 32px;
+      align-items: center;
+    }
+    .arch-box {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 28px;
+    }
+    .arch-box-title {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .arch-box-title .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+    }
+    .arch-items {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .arch-items li {
+      font-size: 13px;
+      color: var(--text-secondary);
+      padding-left: 16px;
+      position: relative;
+    }
+    .arch-items li::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 8px;
+      width: 6px;
+      height: 6px;
+      border-radius: 2px;
+      background: var(--border-bright);
+    }
+    .arch-connector {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .arch-connector-line {
+      width: 80px;
+      height: 2px;
+      background: linear-gradient(90deg, var(--accent), #a855f7);
+      border-radius: 1px;
+      position: relative;
+    }
+    .arch-connector-line::before {
+      content: '';
+      position: absolute;
+      right: -3px;
+      top: -3px;
+      width: 8px;
+      height: 8px;
+      background: #a855f7;
+      border-radius: 50%;
+    }
+    .arch-connector-line::after {
+      content: '';
+      position: absolute;
+      left: -3px;
+      top: -3px;
+      width: 8px;
+      height: 8px;
+      background: var(--accent);
+      border-radius: 50%;
+    }
+
+    /* ─── Privacy Section ───────────────────────── */
+    #privacy {
+      padding: 120px 0;
+    }
+    .privacy-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      margin-top: 48px;
+    }
+    .privacy-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px;
+      text-align: center;
+      transition: all 0.4s var(--ease-out-expo);
+    }
+    .privacy-card:hover {
+      border-color: var(--border-bright);
+      transform: translateY(-2px);
+    }
+    .privacy-icon {
+      width: 48px;
+      height: 48px;
+      margin: 0 auto 16px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+    }
+    .privacy-card-title {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .privacy-card-desc {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    /* ─── CTA Section ───────────────────────────── */
+    #cta {
+      padding: 120px 0;
+      text-align: center;
+      position: relative;
+    }
+    #cta .glow-orb {
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, rgba(99,102,241,0.1), transparent 70%);
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+    }
+    .cta-content {
+      position: relative;
+      z-index: 1;
+    }
+    .cta-title {
+      font-size: clamp(36px, 5vw, 56px);
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+      margin-bottom: 20px;
+    }
+    .cta-subtitle {
+      font-size: 17px;
+      color: var(--text-secondary);
+      margin-bottom: 40px;
+      max-width: 480px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .cta-install {
+      margin-top: 48px;
+      padding: 24px 32px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      display: inline-block;
+      text-align: left;
+    }
+    .cta-install-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      margin-bottom: 8px;
+    }
+    .cta-install-cmd {
+      font-family: var(--font-mono);
+      font-size: 15px;
+      color: var(--green);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .cta-install-cmd .copy-btn {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: var(--font-mono);
+    }
+    .cta-install-cmd .copy-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent-bright);
+    }
+
+    /* ─── Footer ────────────────────────────────── */
+    footer {
+      padding: 40px 0;
+      border-top: 1px solid var(--border);
+    }
+    footer .container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .footer-left {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    .footer-left a { color: var(--text-secondary); text-decoration: none; }
+    .footer-left a:hover { color: var(--text); }
+    .footer-links {
+      display: flex;
+      gap: 24px;
+      list-style: none;
+    }
+    .footer-links a {
+      font-size: 13px;
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .footer-links a:hover { color: var(--text); }
+
+    /* ─── Responsive ────────────────────────────── */
+    @media (max-width: 768px) {
+      .problem-grid,
+      .feature-block,
+      .comparison-grid { grid-template-columns: 1fr; gap: 40px; }
+      .feature-block:nth-child(even) .feature-visual { order: 0; }
+      .steps-grid, .privacy-grid { grid-template-columns: 1fr; }
+      .arch-diagram { grid-template-columns: 1fr; }
+      .arch-connector { flex-direction: row; }
+      .arch-connector-line { width: 2px; height: 40px; background: linear-gradient(180deg, var(--accent), #a855f7); }
+      .nav-links { display: none; }
+      footer .container { flex-direction: column; gap: 16px; text-align: center; }
+      .logos-row { gap: 24px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ─── Navigation ───────────────────────────── -->
+  <nav id="navbar">
+    <div class="container">
+      <a href="#" class="nav-logo">
+        <div class="nav-logo-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round">
+            <circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/>
+            <circle cx="11" cy="11" r="2" fill="#4ade80" stroke="#4ade80" stroke-width="1.5"/>
+          </svg>
+        </div>
+        VibeLens
+      </a>
+      <ul class="nav-links">
+        <li><a href="#features">Features</a></li>
+        <li><a href="#how-it-works">How it works</a></li>
+        <li><a href="#architecture">Architecture</a></li>
+        <li><a href="#privacy">Privacy</a></li>
+        <li><a href="https://github.com/shandar/VibeLens" class="nav-cta" style="border-radius:8px">GitHub</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- ─── Hero ─────────────────────────────────── -->
+  <section id="hero" class="parallax-container">
+    <div class="glow-orb glow-orb-1"></div>
+    <div class="glow-orb glow-orb-2"></div>
+    <div class="container">
+      <div class="reveal">
+        <div class="hero-badge">
+          <span class="hero-badge-dot"></span>
+          Open Source &middot; MIT License
+        </div>
+      </div>
+
+      <h1 class="hero-title reveal reveal-delay-1">
+        See it. Pin it.<br><span class="text-gradient">Fix it.</span>
+      </h1>
+
+      <p class="hero-subtitle reveal reveal-delay-2">
+        A visual co-pilot for vibe coding. Install the extension, click any element, tweak its CSS — no CLI, no terminal, no setup. Works with any AI coding tool.
+      </p>
+
+      <div class="hero-ctas reveal reveal-delay-3">
+        <a href="#how-it-works" class="btn btn-primary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          Get Started
+        </a>
+        <a href="https://github.com/shandar/VibeLens" class="btn btn-secondary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+          View Source
+        </a>
+      </div>
+
+      <div class="hero-panel-wrapper reveal reveal-delay-4">
+        <div class="hero-panel" id="heroPanel">
+          <!-- Title bar -->
+          <div class="panel-titlebar">
+            <div class="panel-dots">
+              <div class="panel-dot" style="background:#ff5f57"></div>
+              <div class="panel-dot" style="background:#febc2e"></div>
+              <div class="panel-dot" style="background:#28c840"></div>
+            </div>
+            <span class="panel-title-text">VibeLens Inspector</span>
+            <span class="panel-status"><span class="panel-status-dot"></span> my-project/</span>
+          </div>
+
+          <!-- Mode buttons -->
+          <div class="panel-modes">
+            <span class="panel-mode-btn active">INSPECT</span>
+            <span class="panel-mode-btn">ANNOTATE</span>
+            <span class="panel-mode-btn">DIFF</span>
+          </div>
+
+          <!-- Breadcrumb -->
+          <div class="panel-breadcrumb">
+            body &rsaquo; div.hero &rsaquo; <span class="bc-active">.btn-primary</span>
+          </div>
+
+          <!-- Background section -->
+          <div class="panel-section">
+            <div class="panel-section-header">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
+              Background
+              <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+            <div class="panel-props">
+              <div class="panel-prop-row">
+                <span class="panel-prop-label">color</span>
+                <span class="panel-color-swatch" id="heroSwatch" style="background:#6366f1"></span>
+                <span class="panel-prop-value changed" id="heroColorVal">#6366f1</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Typography section -->
+          <div class="panel-section">
+            <div class="panel-section-header">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
+              Typography
+              <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+            <div class="panel-props">
+              <div class="panel-prop-row">
+                <span class="panel-prop-label">font-size</span>
+                <span class="panel-prop-value" id="heroFontSize">14px</span>
+              </div>
+              <div class="panel-prop-row">
+                <span class="panel-prop-label">font-weight</span>
+                <span class="panel-prop-value">600</span>
+              </div>
+              <div class="panel-prop-row">
+                <span class="panel-prop-label">color</span>
+                <span class="panel-color-swatch" style="background:#ffffff"></span>
+                <span class="panel-prop-value">#ffffff</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Box Model section (collapsed) -->
+          <div class="panel-section">
+            <div class="panel-section-header">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><rect x="7" y="7" width="10" height="10" rx="1"/></svg>
+              Box Model
+              <svg class="chevron collapsed" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+          </div>
+
+          <!-- Border section -->
+          <div class="panel-section">
+            <div class="panel-section-header">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="4"/></svg>
+              Border
+              <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+            <div class="panel-props">
+              <div class="panel-prop-row">
+                <span class="panel-prop-label">radius</span>
+                <span class="panel-prop-value changed" id="heroRadius">12px</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Apply button -->
+          <button class="panel-apply">Apply 2 changes</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── Works With ───────────────────────────── -->
+  <section id="works-with" class="reveal">
+    <div class="container">
+      <div class="works-with-label">Works with any AI coding tool</div>
+      <div class="logos-row">
+        <span>Claude Code</span>
+        <span>Cursor</span>
+        <span>GitHub Copilot</span>
+        <span>Windsurf</span>
+        <span>Bolt</span>
+        <span>v0</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── Problem ──────────────────────────────── -->
+  <section id="problem">
+    <div class="container">
+      <div class="problem-grid">
+        <div>
+          <div class="section-eyebrow reveal">The Problem</div>
+          <h2 class="section-heading reveal reveal-delay-1">AI builds the UI.<br>You still squint at it.</h2>
+          <p class="section-desc reveal reveal-delay-2">
+            Every time an AI tool generates frontend code, you context-switch to the browser, squint at the output, then type vague feedback like "the spacing looks off." The AI guesses what you mean. You repeat 3-4 times. A 30-second fix takes 10 minutes.
+          </p>
+          <p class="section-desc reveal reveal-delay-3" style="color:var(--accent-bright); font-weight:600;">
+            VibeLens gives you precision instead of guesswork.
+          </p>
+        </div>
+        <div class="reveal reveal-delay-2">
+          <div class="friction-loop">
+            <div class="friction-step">
+              <span class="friction-num friction-num-slow">1</span>
+              Ask AI: "Build a dashboard"
+              <span class="friction-time">0s</span>
+            </div>
+            <div class="friction-connector"></div>
+            <div class="friction-step">
+              <span class="friction-num friction-num-slow">2</span>
+              Alt-tab to browser, squint at result
+              <span class="friction-time">30s</span>
+            </div>
+            <div class="friction-connector"></div>
+            <div class="friction-step">
+              <span class="friction-num friction-num-slow">3</span>
+              Type: "The spacing looks off..."
+              <span class="friction-time">60s</span>
+            </div>
+            <div class="friction-connector"></div>
+            <div class="friction-step">
+              <span class="friction-num friction-num-slow">4</span>
+              AI guesses what you mean
+              <span class="friction-time">90s</span>
+            </div>
+            <div class="friction-connector"></div>
+            <div class="friction-step">
+              <span class="friction-num friction-num-slow">5</span>
+              Repeat 3-4 times...
+              <span class="friction-time" style="color:var(--red)">10min+</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── Features ─────────────────────────────── -->
+  <section id="features">
+    <div class="container">
+      <div class="features-header">
+        <div class="section-eyebrow reveal">Features</div>
+        <h2 class="section-heading reveal reveal-delay-1">Everything you need.<br>Nothing you don't.</h2>
+        <p class="section-desc reveal reveal-delay-2" style="max-width:560px;margin:16px auto 0;">Inspect, edit, annotate, diff — with accessibility checks, state forcing, layout overlays, and direct source write-back. All from a single Chrome extension.</p>
+      </div>
+
+      <!-- Feature 1: See -->
+      <div class="feature-block">
+        <div>
+          <div class="feature-num reveal">01 &mdash; See</div>
+          <h3 class="feature-title reveal reveal-delay-1">Click any element.<br>Know everything.</h3>
+          <p class="feature-desc reveal reveal-delay-2">Click any element and instantly see its full CSS breakdown — box model, typography, background, borders, effects. Force hover/active/focus states to inspect interactive styles. WCAG contrast ratios shown inline with auto-fix suggestions.</p>
+          <ul class="feature-bullets reveal reveal-delay-3">
+            <li><span class="bullet-icon bullet-green">&#10003;</span> State forcing — inspect :hover, :active, :focus styles</li>
+            <li><span class="bullet-icon bullet-green">&#10003;</span> WCAG contrast checker with accessible color suggestions</li>
+            <li><span class="bullet-icon bullet-green">&#10003;</span> CSS variable resolution — see and edit design tokens</li>
+            <li><span class="bullet-icon bullet-green">&#10003;</span> Grid &amp; Flexbox layout overlays</li>
+          </ul>
+        </div>
+        <div class="feature-visual reveal reveal-delay-2">
+          <div class="feature-visual-glow" style="background:rgba(99,102,241,0.3);top:20%;left:10%;"></div>
+          <img src="images/hero-preview.webp" alt="VibeLens live preview panel showing element inspection">
+        </div>
+      </div>
+
+      <!-- Feature 2: Pin -->
+      <div class="feature-block">
+        <div>
+          <div class="feature-num reveal">02 &mdash; Pin</div>
+          <h3 class="feature-title reveal reveal-delay-1">Annotate visually.<br>Export precisely.</h3>
+          <p class="feature-desc reveal reveal-delay-2">Drop annotation pins on any element. Each pin captures the DOM selector, computed styles, and a screenshot crop. Export as JSON or Markdown — structured feedback your AI tool can act on instantly.</p>
+          <ul class="feature-bullets reveal reveal-delay-3">
+            <li><span class="bullet-icon bullet-blue">&#9673;</span> Pins anchored to DOM selectors, not pixel coords</li>
+            <li><span class="bullet-icon bullet-blue">&#9673;</span> Survive reloads, resizes, layout shifts</li>
+            <li><span class="bullet-icon bullet-blue">&#9673;</span> Export as AI-ready prompts in one click</li>
+          </ul>
+        </div>
+        <div class="feature-visual reveal reveal-delay-2">
+          <div class="feature-visual-glow" style="background:rgba(96,165,250,0.3);bottom:10%;right:10%;"></div>
+          <img src="images/feature-annotate.webp" alt="VibeLens annotation pins on a web page">
+        </div>
+      </div>
+
+      <!-- Feature 3: Fix -->
+      <div class="feature-block">
+        <div>
+          <div class="feature-num reveal">03 &mdash; Fix</div>
+          <h3 class="feature-title reveal reveal-delay-1">Tweak CSS live.<br>Source stays in sync.</h3>
+          <p class="feature-desc reveal reveal-delay-2">Adjust colors, spacing, typography, and borders with visual controls. Changes persist across refreshes automatically. Connect a project folder to write directly to your source files — no CLI needed.</p>
+          <ul class="feature-bullets reveal reveal-delay-3">
+            <li><span class="bullet-icon bullet-purple">&#9830;</span> Color pickers, spacing sliders, font selectors</li>
+            <li><span class="bullet-icon bullet-purple">&#9830;</span> Changes persist across page refreshes</li>
+            <li><span class="bullet-icon bullet-purple">&#9830;</span> One-click "Connect Folder" for direct source write-back</li>
+            <li><span class="bullet-icon bullet-purple">&#9830;</span> Export as CSS or AI-ready prompt to clipboard</li>
+          </ul>
+        </div>
+        <div class="feature-visual reveal reveal-delay-2">
+          <div class="feature-visual-glow" style="background:rgba(168,85,247,0.3);top:30%;left:20%;"></div>
+          <img src="images/feature-css-edit.webp" alt="VibeLens CSS editing panel with live preview">
+        </div>
+      </div>
+
+      <!-- Feature 4: Diff -->
+      <div class="feature-block">
+        <div>
+          <div class="feature-num reveal">04 &mdash; Diff</div>
+          <h3 class="feature-title reveal reveal-delay-1">See what changed.<br>Not what you missed.</h3>
+          <p class="feature-desc reveal reveal-delay-2">After every code change, VibeLens highlights exactly what changed in the UI. Green for new elements, yellow for modified, red for removed. Toggle with a keyboard shortcut.</p>
+          <ul class="feature-bullets reveal reveal-delay-3">
+            <li><span class="bullet-icon bullet-yellow">&#9632;</span> Color-coded visual diff overlay</li>
+            <li><span class="bullet-icon bullet-yellow">&#9632;</span> Toggle with Cmd+Shift+D</li>
+            <li><span class="bullet-icon bullet-yellow">&#9632;</span> Compare iterations without squinting</li>
+          </ul>
+        </div>
+        <div class="feature-visual reveal reveal-delay-2">
+          <div class="feature-visual-glow" style="background:rgba(250,204,21,0.2);bottom:20%;right:20%;"></div>
+          <img src="images/feature-diff.webp" alt="VibeLens visual diff showing changes highlighted">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── How It Works ─────────────────────────── -->
+  <section id="how-it-works">
+    <div class="container">
+      <div style="text-align:center;">
+        <div class="section-eyebrow reveal">Setup</div>
+        <h2 class="section-heading reveal reveal-delay-1">Two clicks. Zero config.</h2>
+        <p class="section-desc reveal reveal-delay-2" style="max-width:480px;margin:16px auto 0;">No CLI, no terminal, no Node.js, no accounts. Install the extension and start editing.</p>
+      </div>
+
+      <div class="steps-grid">
+        <div class="step-card reveal">
+          <div class="step-num">1</div>
+          <h3 class="step-title">Install the extension</h3>
+          <p class="step-desc">One click from the Chrome Web Store. Works immediately on any localhost page.</p>
+          <div class="step-code">Chrome Web Store &rarr; "VibeLens" &rarr; Add to Chrome</div>
+        </div>
+
+        <div class="step-card reveal reveal-delay-1">
+          <div class="step-num">2</div>
+          <h3 class="step-title">Click and edit</h3>
+          <p class="step-desc">Open your localhost dev server, click the VibeLens icon, and start clicking elements to inspect and edit. Changes persist across refreshes.</p>
+          <div class="step-code">localhost:5173 &rarr; Click VibeLens &rarr; Edit</div>
+        </div>
+
+        <div class="step-card reveal reveal-delay-2">
+          <div class="step-num">3</div>
+          <h3 class="step-title">Connect your folder <span style="font-size:11px;color:var(--text-muted);font-weight:400;">(optional)</span></h3>
+          <p class="step-desc">Click "Connect Project Folder" to let VibeLens write CSS changes directly to your source files. One-time setup, persists across sessions.</p>
+          <div class="step-code">Connect Folder &rarr; Select project root &rarr; Auto write-back</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── Before/After Comparison ──────────────── -->
+  <section id="comparison">
+    <div class="container">
+      <div style="text-align:center;">
+        <div class="section-eyebrow reveal">Before &amp; After</div>
+        <h2 class="section-heading reveal reveal-delay-1">10 minutes &rarr; 30 seconds</h2>
+      </div>
+
+      <div class="comparison-grid">
+        <div class="comparison-card comparison-card-before reveal">
+          <div class="comparison-label comparison-label-dim">Without VibeLens</div>
+          <ul class="comparison-steps">
+            <li><span class="num">01</span> Ask AI: "Build a dashboard"</li>
+            <li><span class="num">02</span> AI generates code</li>
+            <li><span class="num">03</span> Alt-tab to browser, squint at result</li>
+            <li><span class="num">04</span> Type: "The spacing looks off and colors are wrong"</li>
+            <li><span class="num">05</span> AI guesses what you mean</li>
+            <li><span class="num">06</span> Repeat 3-4 more times...</li>
+          </ul>
+          <div class="comparison-time time-slow">~10+ minutes per iteration</div>
+        </div>
+
+        <div class="comparison-card comparison-card-after reveal reveal-delay-1">
+          <div class="comparison-label comparison-label-bright">With VibeLens</div>
+          <ul class="comparison-steps">
+            <li><span class="num">01</span> Ask AI: "Build a dashboard"</li>
+            <li><span class="num">02</span> AI generates &rarr; VibeLens shows diff overlay</li>
+            <li><span class="num">03</span> Click element &rarr; force :hover state &rarr; check contrast</li>
+            <li><span class="num">04</span> Fix padding directly &rarr; auto-saves to source file</li>
+            <li><span class="num">05</span> Copy remaining issues as AI prompt &rarr; done</li>
+          </ul>
+          <div class="comparison-time time-fast">~30 seconds per iteration</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── Architecture ─────────────────────────── -->
+  <section id="architecture">
+    <div class="container">
+      <div style="text-align:center;">
+        <div class="section-eyebrow reveal">Under the Hood</div>
+        <h2 class="section-heading reveal reveal-delay-1">One extension.<br>Two modes.</h2>
+        <p class="section-desc reveal reveal-delay-2" style="max-width:560px;margin:16px auto 0;">Everything runs in the browser. No external processes. Connect a folder for direct source write-back, or export changes to clipboard.</p>
+      </div>
+
+      <div class="arch-diagram reveal reveal-delay-2">
+        <div class="arch-box">
+          <div class="arch-box-title">
+            <span class="dot" style="background:var(--accent)"></span>
+            Chrome Extension
+          </div>
+          <ul class="arch-items">
+            <li>Floating inspector panel</li>
+            <li>State forcing (:hover, :focus)</li>
+            <li>WCAG contrast checker</li>
+            <li>CSS variable editor</li>
+            <li>Grid/Flex layout overlays</li>
+            <li>Visual diff renderer</li>
+            <li>Element screenshots</li>
+          </ul>
+        </div>
+
+        <div class="arch-connector">
+          <div>File System API</div>
+          <div class="arch-connector-line"></div>
+          <div style="font-size:10px;color:var(--text-muted)">direct write-back</div>
+        </div>
+
+        <div class="arch-box">
+          <div class="arch-box-title">
+            <span class="dot" style="background:var(--green)"></span>
+            Your Source Files
+          </div>
+          <ul class="arch-items">
+            <li>CSS / SCSS / Less</li>
+            <li>JSX / TSX inline styles</li>
+            <li>Vue SFC / Svelte</li>
+            <li>Plain HTML</li>
+            <li>Auto hot-reload on save</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── Privacy ──────────────────────────────── -->
+  <section id="privacy">
+    <div class="container">
+      <div style="text-align:center;">
+        <div class="section-eyebrow reveal">Privacy</div>
+        <h2 class="section-heading reveal reveal-delay-1">Your code stays yours.</h2>
+        <p class="section-desc reveal reveal-delay-2" style="max-width:480px;margin:16px auto 0;">VibeLens makes zero network requests. Everything runs on localhost. No telemetry, no analytics, no accounts.</p>
+      </div>
+
+      <div class="privacy-grid">
+        <div class="privacy-card reveal">
+          <div class="privacy-icon" style="background:rgba(74,222,128,0.1);">&#128274;</div>
+          <div class="privacy-card-title">100% Local</div>
+          <div class="privacy-card-desc">Bridge binds to 127.0.0.1 only. Extension only activates on localhost. Zero external requests.</div>
+        </div>
+        <div class="privacy-card reveal reveal-delay-1">
+          <div class="privacy-icon" style="background:rgba(96,165,250,0.1);">&#128065;</div>
+          <div class="privacy-card-title">No Telemetry</div>
+          <div class="privacy-card-desc">No analytics, no usage tracking, no behavioral data. We don't know you exist and we like it that way.</div>
+        </div>
+        <div class="privacy-card reveal reveal-delay-2">
+          <div class="privacy-icon" style="background:rgba(168,85,247,0.1);">&#128736;</div>
+          <div class="privacy-card-title">Open Source</div>
+          <div class="privacy-card-desc">MIT licensed. Audit every line. The code is the proof. No trust required.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── CTA ──────────────────────────────────── -->
+  <section id="cta">
+    <div class="glow-orb"></div>
+    <div class="container">
+      <div class="cta-content">
+        <h2 class="cta-title reveal">Stop describing.<br>Start <span class="text-gradient">pointing.</span></h2>
+        <p class="cta-subtitle reveal reveal-delay-1">Install VibeLens and close the visual feedback loop. Free, open source, zero setup. Just a Chrome extension.</p>
+        <div class="hero-ctas reveal reveal-delay-2">
+          <a href="https://github.com/shandar/VibeLens" class="btn btn-primary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+            View on GitHub
+          </a>
+          <a href="#how-it-works" class="btn btn-secondary">Get Started</a>
+        </div>
+        <div class="cta-install reveal reveal-delay-3">
+          <div class="cta-install-label">Quick start</div>
+          <div class="cta-install-cmd">
+            <span>Chrome Web Store &rarr; Install VibeLens &rarr; Click icon</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── Footer ───────────────────────────────── -->
+  <footer>
+    <div class="container">
+      <div class="footer-left">
+        Built by <a href="https://affordance.design">Affordance Design Studios</a> &middot; MIT License
+      </div>
+      <ul class="footer-links">
+        <li><a href="https://github.com/shandar/VibeLens">GitHub</a></li>
+        <li><a href="privacy-policy.html">Privacy</a></li>
+        <li><a href="https://affordance.design">ADS</a></li>
+      </ul>
+    </div>
+  </footer>
+
+  <!-- ─── Scripts ──────────────────────────────── -->
+  <script>
+    // ─── Scroll Reveal (IntersectionObserver) ──────
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+    document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+    // ─── Nav scroll effect ─────────────────────────
+    let lastScroll = 0;
+    window.addEventListener('scroll', () => {
+      const nav = document.getElementById('navbar');
+      nav.classList.toggle('scrolled', window.scrollY > 40);
+    }, { passive: true });
+
+    // ─── Parallax on glow orbs ─────────────────────
+    const orbs = document.querySelectorAll('.glow-orb');
+    let ticking = false;
+    window.addEventListener('scroll', () => {
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          const scrollY = window.scrollY;
+          orbs.forEach((orb, i) => {
+            const speed = 0.05 + i * 0.03;
+            orb.style.transform = `translateY(${scrollY * speed}px)`;
+          });
+          ticking = false;
+        });
+        ticking = true;
+      }
+    }, { passive: true });
+
+    // ─── Smooth parallax for feature visuals ───────
+    const featureVisuals = document.querySelectorAll('.feature-visual');
+    const parallaxObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.dataset.parallaxActive = 'true';
+        } else {
+          entry.target.dataset.parallaxActive = 'false';
+        }
+      });
+    }, { threshold: 0, rootMargin: '200px' });
+
+    featureVisuals.forEach(el => parallaxObserver.observe(el));
+
+    window.addEventListener('scroll', () => {
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          featureVisuals.forEach(visual => {
+            if (visual.dataset.parallaxActive !== 'true') return;
+            const rect = visual.getBoundingClientRect();
+            const center = rect.top + rect.height / 2;
+            const viewCenter = window.innerHeight / 2;
+            const offset = (center - viewCenter) * 0.04;
+            visual.style.transform = `translateY(${offset}px)`;
+          });
+          ticking = false;
+        });
+        ticking = true;
+      }
+    }, { passive: true });
+
+    // ─── Friction steps stagger animation ──────────
+    const frictionSteps = document.querySelectorAll('.friction-step');
+    const frictionObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const steps = entry.target.closest('.friction-loop')?.querySelectorAll('.friction-step');
+          steps?.forEach((step, i) => {
+            setTimeout(() => {
+              step.style.opacity = '1';
+              step.style.transform = 'translateX(0)';
+            }, i * 120);
+          });
+          frictionObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.3 });
+
+    frictionSteps.forEach(step => {
+      step.style.opacity = '0';
+      step.style.transform = 'translateX(-20px)';
+      step.style.transition = 'all 0.5s var(--ease-out-expo)';
+    });
+    if (frictionSteps.length) frictionObserver.observe(frictionSteps[0]);
+
+    // ─── Copy button ───────────────────────────────
+    function copyCmd(btn) {
+      navigator.clipboard.writeText('npx vibelens');
+      btn.textContent = 'Copied!';
+      btn.style.color = 'var(--green)';
+      btn.style.borderColor = 'var(--green)';
+      setTimeout(() => {
+        btn.textContent = 'Copy';
+        btn.style.color = '';
+        btn.style.borderColor = '';
+      }, 2000);
+    }
+
+    // ─── Hero panel value cycling animation ─────────
+    const colorCycle = ['#6366f1', '#3b82f6', '#8b5cf6', '#ec4899', '#22c55e'];
+    const radiusCycle = ['12px', '8px', '24px', '100px', '4px'];
+    const fontCycle = ['14px', '16px', '13px', '15px', '14px'];
+    let cycleIdx = 0;
+
+    function animatePanelValues() {
+      cycleIdx = (cycleIdx + 1) % colorCycle.length;
+      const swatch = document.getElementById('heroSwatch');
+      const colorVal = document.getElementById('heroColorVal');
+      const radiusVal = document.getElementById('heroRadius');
+      const fontVal = document.getElementById('heroFontSize');
+
+      if (swatch) swatch.style.background = colorCycle[cycleIdx];
+      if (colorVal) {
+        colorVal.textContent = colorCycle[cycleIdx];
+        colorVal.style.animation = 'value-flash 0.4s ease';
+        setTimeout(() => colorVal.style.animation = '', 400);
+      }
+      if (radiusVal) {
+        radiusVal.textContent = radiusCycle[cycleIdx];
+        radiusVal.style.animation = 'value-flash 0.4s ease';
+        setTimeout(() => radiusVal.style.animation = '', 400);
+      }
+      if (fontVal && cycleIdx % 2 === 0) {
+        fontVal.textContent = fontCycle[cycleIdx];
+        fontVal.classList.add('changed');
+        setTimeout(() => fontVal.classList.remove('changed'), 1500);
+      }
+    }
+    setInterval(animatePanelValues, 2800);
+
+    // ─── Smooth anchor scrolling ───────────────────
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', (e) => {
+        e.preventDefault();
+        const target = document.querySelector(anchor.getAttribute('href'));
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    });
+  </script>
+</body>
+</html>

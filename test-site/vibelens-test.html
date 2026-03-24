@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VibeLens Test Page</title>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface-hover: #22263a;
+      --border: #2a2e3f;
+      --text: #e4e6f0;
+      --text-muted: #8b8fa3;
+      --accent: #6366f1;
+      --accent-hover: #818cf8;
+      --success: #22c55e;
+      --warning: #f59e0b;
+      --error: #ef4444;
+      --radius: 12px;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    /* ── Header ─────────────────────────────── */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 32px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .header-logo span { font-size: 24px; }
+
+    .header-nav {
+      display: flex;
+      gap: 24px;
+      list-style: none;
+    }
+
+    .header-nav a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+
+    .header-nav a:hover { color: var(--text); }
+
+    .header-actions {
+      display: flex;
+      gap: 12px;
+    }
+
+    /* ── Buttons ─────────────────────────────── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: white;
+      background-color: #2f5c0a;
+    }
+    .btn-primary:hover { background: var(--accent-hover); transform: translateY(-1px); }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border);
+      background-color: #f70844;
+    }
+    .btn-secondary:hover { background: var(--surface-hover); border-color: var(--accent); }
+
+    .btn-danger {
+      background: var(--error);
+      color: white;
+    }
+    .btn-danger:hover { opacity: 0.9; }
+
+    .btn-success {
+      background: var(--success);
+      color: white;
+    }
+
+    /* ── Hero Section ────────────────────────── */
+    .hero {
+      text-align: center;
+      padding: 80px 32px;
+      max-width: 800px;
+      margin: 0 auto;
+      background-color: #1133df;
+    }
+
+    .hero h1 {
+      font-size: 48px;
+      font-weight: 800;
+      line-height: 1.1;
+      margin-bottom: 16px;
+      background: linear-gradient(135deg, var(--accent), #a78bfa, #ec4899);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero p {
+      font-size: 18px;
+      color: var(--text-muted);
+      max-width: 560px;
+      margin: 0 auto 32px;
+    }
+
+    .hero-buttons { display: flex; gap: 12px; justify-content: center; }
+
+    /* ── Cards Grid ──────────────────────────── */
+    .section {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 64px 32px;
+    }
+
+    .section-title {
+      font-size: 32px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .section-subtitle {
+      color: var(--text-muted);
+      font-size: 16px;
+      margin-bottom: 40px;
+    }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 24px;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+      transition: all 0.25s;
+    }
+
+    .card:hover {
+      border-color: var(--accent);
+      transform: translateY(-4px);
+      box-shadow: 0 12px 32px rgba(99, 102, 241, 0.15);
+      color: #ff0000;
+    }
+
+    .card-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      margin-bottom: 16px;
+    }
+
+    .card-icon.blue { background: rgba(99, 102, 241, 0.15); }
+    .card-icon.green { background: rgba(34, 197, 94, 0.15); }
+    .card-icon.orange { background: rgba(245, 158, 11, 0.15); }
+    .card-icon.pink { background: rgba(236, 72, 153, 0.15); }
+
+    .card h3 { font-size: 18px; font-weight: 600; margin-bottom: 8px; }
+    .card p { color: var(--text-muted); font-size: 14px; line-height: 1.6; }
+
+    /* ── Form Section ────────────────────────── */
+    .form-container {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 32px;
+      max-width: 560px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: 6px;
+      color: var(--text);
+    }
+
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+      width: 100%;
+      padding: 10px 14px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 14px;
+      font-family: inherit;
+      transition: border-color 0.2s;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+    }
+
+    .form-group textarea { min-height: 100px; resize: vertical; }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    /* ── Stats Bar ───────────────────────────── */
+    .stats-bar {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+      padding: 48px 32px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .stat-item {
+      text-align: center;
+      padding: 24px;
+      background: var(--surface);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+    }
+
+    .stat-value {
+      font-size: 36px;
+      font-weight: 800;
+      color: var(--accent);
+    }
+
+    .stat-label {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* ── Table ───────────────────────────────── */
+    .table-container {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th {
+      text-align: left;
+      padding: 14px 20px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+      background: var(--bg);
+    }
+
+    td {
+      padding: 14px 20px;
+      font-size: 14px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: var(--surface-hover); }
+
+    .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 99px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .badge-success { background: rgba(34, 197, 94, 0.15); color: var(--success); }
+    .badge-warning { background: rgba(245, 158, 11, 0.15); color: var(--warning); }
+    .badge-error { background: rgba(239, 68, 68, 0.15); color: var(--error); }
+
+    /* ── Footer ──────────────────────────────── */
+    .footer {
+      text-align: center;
+      padding: 32px;
+      color: var(--text-muted);
+      font-size: 13px;
+      border-top: 1px solid var(--border);
+      margin-top: 64px;
+    }
+
+    /* ── Utility ──────────────────────────────── */
+    .flex { display: flex; }
+    .gap-12 { gap: 12px; }
+    .mt-24 { margin-top: 24px; }
+
+    @media (max-width: 768px) {
+      .hero h1 { font-size: 32px; }
+      .stats-bar { grid-template-columns: repeat(2, 1fr); }
+      .card-grid { grid-template-columns: 1fr; }
+      .form-row { grid-template-columns: 1fr; }
+      .header-nav { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="header" data-testid="main-header">
+    <div class="header-logo">
+      <span>🔍</span> VibeLens Test
+    </div>
+    <nav>
+      <ul class="header-nav">
+        <li><a href="#features">Features</a></li>
+        <li><a href="#form">Contact</a></li>
+        <li><a href="#data">Data</a></li>
+        <li><a href="#stats">Stats</a></li>
+      </ul>
+    </nav>
+    <div class="header-actions">
+      <button class="btn btn-secondary" id="theme-toggle">🌙 Dark</button>
+      <button class="btn btn-primary" id="cta-button">Get Started</button>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section class="hero text-black bg-[#f9e50b]" data-testid="hero-section">
+    <h1>Test Your VibeLens</h1>
+    <p>This page has diverse UI elements for testing annotation pins, CSS editing, style inspection, and live preview features.</p>
+    <div class="hero-buttons">
+      <button class="btn btn-primary">✨ Annotate This Page</button>
+      <button class="btn btn-secondary">📖 Documentation</button>
+    </div>
+  </section>
+
+  <!-- Stats Bar -->
+  <div class="stats-bar" id="stats" data-testid="stats-section">
+    <div class="stat-item">
+      <div class="stat-value">48</div>
+      <div class="stat-label">Audit Fixes</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-value">88</div>
+      <div class="stat-label">Tests Passing</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-value">107</div>
+      <div class="stat-label">Modules Built</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-value">&lt;42KB</div>
+      <div class="stat-label">Bundle (gzipped)</div>
+    </div>
+  </div>
+
+  <!-- Feature Cards -->
+  <section class="section" id="features">
+    <h2 class="section-title">Feature Playground</h2>
+    <p class="section-subtitle">Click, hover, and annotate these cards to test VibeLens capabilities.</p>
+
+    <div class="card-grid">
+      <div class="card" data-testid="card-annotate">
+        <div class="card-icon blue">📌</div>
+        <h3>Annotation Pins</h3>
+        <p>Click any element in annotation mode to drop a pin. Choose from comment, bug, suggestion, or style-change categories.</p>
+      </div>
+
+      <div class="card" data-testid="card-edit">
+        <div class="card-icon green">🎨</div>
+        <h3>CSS Live Editor</h3>
+        <p>Click any element in edit mode to open the tooltip editor. Change colors, spacing, fonts, and see changes in real-time.</p>
+      </div>
+
+      <div class="card" data-testid="card-inspect">
+        <div class="card-icon orange">🔍</div>
+        <h3>Style Inspector</h3>
+        <p>Hover over elements to see computed styles, dimensions, and box model visualizations rendered as overlays.</p>
+      </div>
+
+      <div class="card" data-testid="card-bridge">
+        <div class="card-icon pink">🔌</div>
+        <h3>Bridge Connection</h3>
+        <p>The local bridge server connects via WebSocket on port 9119, enabling file watching and source-map resolution.</p>
+      </div>
+
+      <div class="card" data-testid="card-push">
+        <div class="card-icon blue">📤</div>
+        <h3>Push to IDE</h3>
+        <p>Export annotations as structured feedback and push directly to your IDE for review.</p>
+      </div>
+
+      <div class="card" data-testid="card-viewport">
+        <div class="card-icon green">📱</div>
+        <h3>Viewport Testing</h3>
+        <p>Switch between mobile (375px), tablet (768px), desktop (1440px), and responsive modes from the side panel.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Form Section -->
+  <section class="section" id="form">
+    <h2 class="section-title">Form Elements</h2>
+    <p class="section-subtitle">Test annotation and editing on interactive form elements.</p>
+
+    <div class="form-container" data-testid="contact-form">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="firstName">First Name</label>
+          <input type="text" id="firstName" placeholder="Jane" />
+        </div>
+        <div class="form-group">
+          <label for="lastName">Last Name</label>
+          <input type="text" id="lastName" placeholder="Doe" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="email">Email Address</label>
+        <input type="email" id="email" placeholder="jane@example.com" />
+      </div>
+
+      <div class="form-group">
+        <label for="framework">Framework</label>
+        <select id="framework">
+          <option>React</option>
+          <option>Vue</option>
+          <option>Svelte</option>
+          <option>Next.js</option>
+          <option>Astro</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="message">Message</label>
+        <textarea id="message" placeholder="Describe the issue or suggestion..."></textarea>
+      </div>
+
+      <div class="flex gap-12 mt-24">
+        <button class="btn btn-primary" type="submit">Submit Feedback</button>
+        <button class="btn btn-secondary" type="reset">Reset</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Data Table -->
+  <section class="section" id="data">
+    <h2 class="section-title">Data Table</h2>
+    <p class="section-subtitle">Tables with badges and interactive rows for testing selection and annotation.</p>
+
+    <div class="table-container" data-testid="data-table">
+      <table>
+        <thead>
+          <tr>
+            <th>Finding</th>
+            <th>Severity</th>
+            <th>Phase</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Path containment validation</td>
+            <td><span class="badge badge-error">Critical</span></td>
+            <td>Phase 1 — Safety</td>
+            <td><span class="badge badge-success">Fixed</span></td>
+          </tr>
+          <tr>
+            <td>Runtime Zod validation</td>
+            <td><span class="badge badge-error">Critical</span></td>
+            <td>Phase 2 — Correctness</td>
+            <td><span class="badge badge-success">Fixed</span></td>
+          </tr>
+          <tr>
+            <td>AST-based CSS writer</td>
+            <td><span class="badge badge-warning">High</span></td>
+            <td>Phase 3 — Architecture</td>
+            <td><span class="badge badge-success">Fixed</span></td>
+          </tr>
+          <tr>
+            <td>Decompose App.tsx</td>
+            <td><span class="badge badge-warning">High</span></td>
+            <td>Phase 3 — Architecture</td>
+            <td><span class="badge badge-success">Fixed</span></td>
+          </tr>
+          <tr>
+            <td>Source map LRU eviction</td>
+            <td><span class="badge badge-warning">Medium</span></td>
+            <td>Phase 4 — Polish</td>
+            <td><span class="badge badge-success">Fixed</span></td>
+          </tr>
+          <tr>
+            <td>PNG icons for Chrome</td>
+            <td><span class="badge badge-warning">Low</span></td>
+            <td>Phase 4 — Polish</td>
+            <td><span class="badge badge-success">Fixed</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Nested Layout (for testing deep selectors) -->
+  <section class="section">
+    <h2 class="section-title">Nested Layout</h2>
+    <p class="section-subtitle">Deeply nested elements for testing selector generation and hover inspection.</p>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+      <div class="card" data-testid="nested-card-left">
+        <h3>Left Column</h3>
+        <p>This card has nested elements below:</p>
+        <div style="margin-top: 16px; padding: 16px; background: var(--bg); border-radius: 8px;">
+          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+            <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 18px;">A</div>
+            <div>
+              <div style="font-weight: 600; font-size: 14px;">User Avatar</div>
+              <div style="font-size: 12px; color: var(--text-muted);">Deeply nested text element</div>
+            </div>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <button class="btn btn-primary" style="padding: 6px 14px; font-size: 12px;">Follow</button>
+            <button class="btn btn-secondary" style="padding: 6px 14px; font-size: 12px;">Message</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" data-testid="nested-card-right">
+        <h3>Right Column</h3>
+        <p>Another nested structure for comparison:</p>
+        <div style="margin-top: 16px;">
+          <div style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border);">
+            <span>Status</span>
+            <span class="badge badge-success">Online</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border);">
+            <span>Bridge</span>
+            <span class="badge badge-success">Connected</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; padding: 12px 0;">
+            <span>Extensions</span>
+            <span class="badge badge-warning">1 Active</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <p>VibeLens Test Page &mdash; Built for testing annotation pins, CSS editing, and style inspection.</p>
+    <p style="margin-top: 8px;">Bridge port: 9119 &bull; Extension: Preact + CRXJS &bull; 48/48 audit findings resolved</p>
+  </footer>
+
+  <script>
+    // Simple interactivity for testing
+    document.getElementById('theme-toggle')?.addEventListener('click', function() {
+      document.body.style.filter = document.body.style.filter ? '' : 'invert(1) hue-rotate(180deg)';
+      this.textContent = document.body.style.filter ? '☀️ Light' : '🌙 Dark';
+    });
+
+    document.getElementById('cta-button')?.addEventListener('click', function() {
+      alert('VibeLens CTA clicked! Open the side panel to start annotating.');
+    });
+  </script>
+
+</body>
+</html>
