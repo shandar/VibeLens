@@ -8,6 +8,7 @@ export default defineConfig({
     preact(),
     crx({ manifest }),
   ],
+  base: '',
   build: {
     outDir: 'dist',
     emptyOutDir: true,
