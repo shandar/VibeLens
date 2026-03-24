@@ -18,6 +18,22 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand('vibelens.restart', () => restartBridge()),
   )
 
+  // M18: watch for config changes and auto-restart bridge when relevant settings change
+  context.subscriptions.push(
+    vscode.workspace.onDidChangeConfiguration((e) => {
+      if (
+        e.affectsConfiguration('vibelens.port') ||
+        e.affectsConfiguration('vibelens.framework') ||
+        e.affectsConfiguration('vibelens.ignorePatterns')
+      ) {
+        if (bridge?.info.running) {
+          vscode.window.showInformationMessage('VibeLens: Configuration changed — restarting bridge…')
+          restartBridge()
+        }
+      }
+    }),
+  )
+
   // Auto-start if configured
   const config = vscode.workspace.getConfiguration('vibelens')
   if (config.get<boolean>('autoStart', true)) {
