@@ -7,6 +7,9 @@ export const WS_PATH = '/ws'
 /** HTTP API base path */
 export const API_BASE = '/api'
 
+/** Chrome storage key for user-configured bridge port */
+export const BRIDGE_PORT_STORAGE_KEY = 'vibelens-bridge-port'
+
 /** Common dev server ports to probe */
 export const DEV_SERVER_PORTS = [3000, 3001, 4321, 5173, 5174, 8080, 8888] as const
 

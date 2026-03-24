@@ -59,6 +59,12 @@ export interface WritePreviewPayload {
   modifiedContent: string
 }
 
+export interface AnnotationsPushedPayload {
+  filePath: string
+  annotationCount: number
+  timestamp: string
+}
+
 // ─── Extension → Bridge Messages ───────────────────────────────
 
 export interface SourceResolvePayload {
@@ -70,8 +76,43 @@ export interface SourceResolvePayload {
 export interface WriteRequestPayload {
   selector: string
   changes: StyleChange[]
+  /** Computed styles of the target element — helps the resolver match CSS rules */
+  computedStyles?: Record<string, string>
+  /** Page URL where the edit was made — helps the resolver narrow the search */
+  url?: string
   sourceFile?: string
   sourceLine?: number
+  /** Class list of the selected DOM element — used for accurate CSS rule matching
+   *  when the grep resolver returns an ancestor's line instead of the target's */
+  elementClasses?: string[]
+  /** Tag name of the selected DOM element (lowercase, e.g. 'button') */
+  elementTag?: string
+}
+
+/** C1/C2: write:confirm payload — user approved the previewed write */
+export interface WriteConfirmPayload {
+  requestId: string
+}
+
+/** C1/C2: write:cancel payload — user rejected the previewed write */
+export interface WriteCancelPayload {
+  requestId: string
+}
+
+/** C7: text:changed payload — sent when inline text is edited in the preview */
+export interface TextChangedPayload {
+  selector: string
+  oldText: string
+  newText: string
+  pageUrl: string
+}
+
+/** C7: annotations:push payload — sent when annotations are exported to the bridge */
+export interface AnnotationsPushPayload {
+  pageUrl: string
+  timestamp: string
+  /** H14: reuses the shared Annotation type */
+  annotations: Annotation[]
 }
 
 // ─── Bridge → Extension message types (union) ──────────────────
@@ -82,27 +123,35 @@ export type BridgeMessage =
   | MessageEnvelope<'source:resolved', SourceResolvedPayload>
   | MessageEnvelope<'write:result', WriteResultPayload>
   | MessageEnvelope<'write:preview', WritePreviewPayload>
+  | MessageEnvelope<'annotations:pushed', AnnotationsPushedPayload>
 
 // ─── Extension → Bridge message types (union) ──────────────────
 
 export type ExtensionMessage =
   | MessageEnvelope<'source:resolve', SourceResolvePayload>
   | MessageEnvelope<'write:request', WriteRequestPayload>
+  | MessageEnvelope<'write:confirm', WriteConfirmPayload>
+  | MessageEnvelope<'write:cancel', WriteCancelPayload>
+  | MessageEnvelope<'text:changed', TextChangedPayload>
+  | MessageEnvelope<'annotations:push', AnnotationsPushPayload>
 
 // ─── Data Models ───────────────────────────────────────────────
 
 import type { ANNOTATION_CATEGORIES, SUPPORTED_FRAMEWORKS } from './constants.js'
 
 export type AnnotationCategory = (typeof ANNOTATION_CATEGORIES)[number]
+/** H14: backwards-compatible alias used by extension UI */
+export type AnnotationType = AnnotationCategory
 export type FrameworkType = (typeof SUPPORTED_FRAMEWORKS)[number]
 
+/** H14: unified Annotation — single source of truth for all packages */
 export interface Annotation {
   id: string
   /** CSS selector path for re-anchoring */
   selector: string
   /** Human-readable element description */
   elementDescription: string
-  /** Annotation category */
+  /** Annotation category (aliased as `type` in older code paths) */
   category: AnnotationCategory
   /** User's annotation message */
   message: string
@@ -110,9 +159,11 @@ export interface Annotation {
   computedStyles: Record<string, string>
   /** Page URL where annotation was created */
   pageUrl: string
+  /** Whether this annotation has been resolved */
+  resolved: boolean
   /** ISO 8601 timestamp */
   createdAt: string
-  /** ISO 8601 timestamp */
+  /** ISO 8601 timestamp — last edit */
   updatedAt: string
 }
 
