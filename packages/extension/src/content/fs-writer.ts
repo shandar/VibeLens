@@ -306,7 +306,7 @@ function applyChangesToCSS(
   let modified = content
   let matched = false
 
-  modified = content.replace(ruleRegex, (fullMatch, selectorPart: string, body: string) => {
+  modified = content.replace(ruleRegex, (_fullMatch, selectorPart: string, body: string) => {
     let newBody = body
     for (const change of changes) {
       // camelCase to kebab-case
