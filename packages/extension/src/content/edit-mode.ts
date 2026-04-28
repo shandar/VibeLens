@@ -77,7 +77,7 @@ function handleEditClick(e: MouseEvent): void {
     originalTextContent = target.textContent
     saveInlineStyles(target, ['outline', 'outline-offset', 'min-height'])
     target.contentEditable = 'true'
-    target.style.outline = '2px solid ${T.cyan}'
+    target.style.outline = `2px solid ${T.cyan}`
     target.style.outlineOffset = '2px'
     target.style.minHeight = '1em'
     target.focus()
@@ -174,7 +174,7 @@ function showEditModeBanner(): void {
     fontWeight: '500',
     zIndex: '999999',
     boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
-    border: '1px solid ${T.cyan}',
+    border: `1px solid ${T.cyan}`,
     pointerEvents: 'none',
   })
   banner.textContent = 'Edit Mode — click any text to edit. Esc to cancel, Enter to confirm.'

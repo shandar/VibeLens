@@ -68,7 +68,7 @@ function handleHover(e: MouseEvent): void {
   removeHighlight()
   highlightedElement = target
   saveInlineStyles(target, ['outline', 'outline-offset'])
-  target.style.outline = '2px solid ${T.violet}'
+  target.style.outline = `2px solid ${T.violet}`
   target.style.outlineOffset = '2px'
 }
 
