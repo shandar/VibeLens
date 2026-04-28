@@ -16,8 +16,6 @@ import { T } from './design-tokens.js'
 
 export type PseudoState = ':hover' | ':active' | ':focus' | ':focus-within' | ':visited'
 
-const ALL_STATES: PseudoState[] = [':hover', ':active', ':focus', ':focus-within', ':visited']
-
 /* ─── State ─── */
 
 const activeStates = new Map<HTMLElement, Set<PseudoState>>()

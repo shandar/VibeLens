@@ -24,6 +24,7 @@ import type {
   BridgeInfo,
   PendingAnnotation,
   PendingWritePreview,
+  EditingAnnotation,
 } from './types.js'
 import {
   VIEWPORTS,
@@ -63,7 +64,7 @@ export function App(): JSX.Element {
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [selectedAnnotationId, setSelectedAnnotationId] = useState<string | null>(null)
   const [pushStatus, setPushStatus] = useState<'idle' | 'pushing' | 'done' | 'error'>('idle')
-  const [editingAnnotation, setEditingAnnotation] = useState<import('./types.js').EditingAnnotation | null>(null)
+  const [editingAnnotation, setEditingAnnotation] = useState<EditingAnnotation | null>(null)
   const [iframeFading, setIframeFading] = useState(false)
   const [writeStatus, setWriteStatus] = useState<'idle' | 'writing' | 'previewing' | 'done' | 'error'>('idle')
   const [writeMessage, setWriteMessage] = useState<string | null>(null)

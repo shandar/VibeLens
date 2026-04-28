@@ -44,7 +44,8 @@ export function isToolbarVisible(): boolean {
 }
 
 export function toggleToolbar(): void {
-  visible ? hideToolbar() : showToolbar()
+  if (visible) hideToolbar()
+  else showToolbar()
 }
 
 export function showToolbar(): void {

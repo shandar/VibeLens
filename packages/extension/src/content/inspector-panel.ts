@@ -21,7 +21,7 @@ import { saveChanges, changesToCleanCSS, changesToPrompt, type StoredChange } fr
 import { T } from './design-tokens.js'
 import {
   connectFolder, disconnectFolder, isConnected, getProjectName,
-  writeChangesToSource, restoreConnection,
+  writeChangesToSource,
 } from './fs-writer.js'
 import { createStateToggles, clearStates } from './state-forcing.js'
 import { createVariablesSection } from './css-variables.js'
@@ -69,7 +69,8 @@ export function isInspectorVisible(): boolean {
 }
 
 export function toggleInspector(): void {
-  visible ? hideInspector() : showInspector()
+  if (visible) hideInspector()
+  else showInspector()
 }
 
 export function showInspector(): void {
@@ -609,7 +610,11 @@ function createModeTabBar(): HTMLElement {
   // Tab: Inspect
   bar.appendChild(createModeTab(
     'Inspect', 'inspect',
-    () => { inspectMode ? disableInspectMode() : enableInspectMode(); refreshHeaderButtons() },
+    () => {
+      if (inspectMode) disableInspectMode()
+      else enableInspectMode()
+      refreshHeaderButtons()
+    },
   ))
 
   // Tab: Annotate (placeholder)
@@ -1454,13 +1459,6 @@ function getEffectiveBackground(el: HTMLElement): string {
 }
 
 /* ─── Text Editing ─── */
-
-function handleTextEditClick(): void {
-  if (!selectedElement) return
-  if (NON_TEXT_TAGS.has(selectedElement.tagName)) return
-  if (isEditingText) finishTextEdit()
-  else startTextEdit()
-}
 
 function startTextEdit(): void {
   if (!selectedElement) return

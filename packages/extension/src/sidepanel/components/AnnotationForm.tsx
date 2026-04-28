@@ -67,7 +67,6 @@ export function AnnotationForm({
           placeholder="Describe the issue or suggestion…"
           style={S.formTextarea}
           rows={3}
-          // eslint-disable-next-line jsx-a11y/no-autofocus
           autoFocus
         />
 
