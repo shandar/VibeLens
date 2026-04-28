@@ -7,6 +7,11 @@ versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.1] — 2026-04-28
+
+### Fixed
+- **Edit-mode and annotation-mode outlines now render their intended colors.** Three style strings used template-literal placeholders inside single-quoted strings, so `${T.cyan}` and `${T.violet}` were being assigned to CSS as the literal text "${T.cyan}" rather than the interpolated color. Browsers discarded the invalid CSS, leaving outlines without color since the feature shipped. Now rendering cyan in edit-mode and violet in annotation-mode as designed.
+
 ## [0.1.0] — 2026-04-28
 
 First public release. Available on the [Chrome Web Store](https://chromewebstore.google.com/detail/vibelens/ioohnmnbefdobfonfhlbglgonkdifhll) and on [GitHub](https://github.com/shandar/VibeLens) under MIT.
@@ -36,5 +41,6 @@ First public release. Available on the [Chrome Web Store](https://chromewebstore
 - **v0.4.0** — Framework adapters: Vue, Svelte, Tailwind variants, Firefox port
 - **v0.5.0** — AI integration: tool-specific export, webhook API
 
-[Unreleased]: https://github.com/shandar/VibeLens/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/shandar/VibeLens/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/shandar/VibeLens/releases/tag/v0.1.1
 [0.1.0]: https://github.com/shandar/VibeLens/releases/tag/v0.1.0

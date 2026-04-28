@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "VibeLens",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Visual co-pilot for vibe coding — preview, annotate, and tweak AI-generated UI",
   "permissions": [
     "sidePanel",

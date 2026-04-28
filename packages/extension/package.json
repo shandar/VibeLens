@@ -1,6 +1,6 @@
 {
   "name": "@vibelens/extension",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "description": "VibeLens Chrome extension — visual preview, annotation, and CSS manipulation",
   "type": "module",

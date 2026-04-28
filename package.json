@@ -1,6 +1,6 @@
 {
   "name": "vibelens",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "description": "A visual co-pilot for vibe coding — preview, annotate, and tweak AI-generated UI in the browser",
   "author": "Shandar Junaid / Affordance Design Studios <hello@affordancedesign.in>",
