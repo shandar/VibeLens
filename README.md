@@ -11,6 +11,7 @@
 </p>
 
 <p align="center">
+  <a href="https://chromewebstore.google.com/detail/vibelens/ioohnmnbefdobfonfhlbglgonkdifhll"><strong>Install from Chrome Web Store</strong></a> &middot;
   <a href="#features">Features</a> &middot;
   <a href="#quick-start">Quick Start</a> &middot;
   <a href="#how-it-works">How It Works</a> &middot;
@@ -28,7 +29,7 @@ AI tools generate frontend code, but you still squint at the browser and type va
 ## Quick Start
 
 ```
-1. Install VibeLens from the Chrome Web Store
+1. Install VibeLens from the [Chrome Web Store](https://chromewebstore.google.com/detail/vibelens/ioohnmnbefdobfonfhlbglgonkdifhll)
 2. Open any localhost page (your dev server)
 3. Click the VibeLens icon
 4. Click any element — start editing
